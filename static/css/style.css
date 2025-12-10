@@ -643,41 +643,42 @@ a {
 }
 
 .sidebar-header {
-    padding: 30px 20px;
+    padding: 20px 15px;
     text-align: center;
     border-bottom: 1px solid #e2e8f0;
 }
 
 .user-avatar {
-    width: 70px;
-    height: 70px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     background: linear-gradient(135deg, var(--primary), var(--secondary));
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 12px;
+    margin: 0 auto 8px;
     color: var(--white);
-    font-size: 28px;
+    font-size: 22px;
 }
 
 .user-name {
     font-weight: 600;
-    font-size: 16px;
+    font-size: 14px;
 }
 
 .sidebar-nav {
     flex: 1;
-    padding: 20px 0;
+    padding: 10px 0;
 }
 
 .nav-item {
     display: flex;
     align-items: center;
-    gap: 14px;
-    padding: 14px 24px;
+    gap: 12px;
+    padding: 10px 20px;
     color: var(--grey);
     font-weight: 500;
+    font-size: 14px;
     transition: all 0.3s ease;
 }
 
@@ -693,16 +694,16 @@ a {
 }
 
 .nav-item i {
-    font-size: 18px;
-    width: 24px;
+    font-size: 16px;
+    width: 20px;
     text-align: center;
 }
 
 .sidebar-footer {
-    padding: 20px;
+    padding: 12px 15px;
     text-align: center;
     border-top: 1px solid #e2e8f0;
-    font-size: 12px;
+    font-size: 11px;
     color: var(--grey);
     margin-top: auto;
     flex-shrink: 0;
