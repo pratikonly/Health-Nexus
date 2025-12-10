@@ -159,37 +159,49 @@ def analyze_food(request):
             image_data = request.POST.get('image_data', '').strip()
             meal_type = request.POST.get('meal_type', 'snack')
             
-            # If image is provided, detect food from image
+            # If image is provided, detect food from image using Clarifai
             if image_data and not food_name:
                 try:
-                    # Use Calorie Mama API for food recognition
-                    calorie_mama_url = 'https://api-2445582032290.production.gw.apicast.io/v1/foodrecognition'
-                    calorie_mama_key = os.environ.get('CALORIE_MAMA_API_KEY', '')
+                    # Use Clarifai Food Recognition API
+                    clarifai_api_key = os.environ.get('CLARIFAI_API_KEY', '')
                     
-                    # Convert base64 to bytes
-                    if ',' in image_data:
-                        image_data = image_data.split(',')[1]
+                    if clarifai_api_key:
+                        # Convert base64 to clean format
+                        if ',' in image_data:
+                            image_data_clean = image_data.split(',')[1]
+                        else:
+                            image_data_clean = image_data
+                        
+                        clarifai_url = 'https://api.clarifai.com/v2/models/food-item-recognition/outputs'
+                        headers = {
+                            'Authorization': f'Key {clarifai_api_key}',
+                            'Content-Type': 'application/json'
+                        }
+                        payload = {
+                            'inputs': [{
+                                'data': {
+                                    'image': {
+                                        'base64': image_data_clean
+                                    }
+                                }
+                            }]
+                        }
+                        
+                        recognition_response = requests.post(clarifai_url, json=payload, headers=headers, timeout=10)
+                        
+                        if recognition_response.status_code == 200:
+                            recognition_data = recognition_response.json()
+                            # Extract detected food name from Clarifai response
+                            if 'outputs' in recognition_data and len(recognition_data['outputs']) > 0:
+                                concepts = recognition_data['outputs'][0].get('data', {}).get('concepts', [])
+                                if concepts and len(concepts) > 0:
+                                    food_name = concepts[0].get('name', '')
                     
-                    image_bytes = base64.b64decode(image_data)
-                    
-                    # Send image to Calorie Mama API
-                    files = {'media': ('food.jpg', image_bytes, 'image/jpeg')}
-                    headers = {'Authorization': f'Bearer {calorie_mama_key}'} if calorie_mama_key else {}
-                    
-                    recognition_response = requests.post(calorie_mama_url, files=files, headers=headers, timeout=10)
-                    
-                    if recognition_response.status_code == 200:
-                        recognition_data = recognition_response.json()
-                        # Extract detected food name
-                        if recognition_data and len(recognition_data) > 0:
-                            food_name = recognition_data[0].get('name', '')
-                    
-                    # Fallback: Use a simple food detection without API
+                    # If still no food name, ask user to enter manually
                     if not food_name:
-                        # Since we don't have a free reliable API, inform user to enter name
                         return JsonResponse({
                             'success': False,
-                            'error': 'Could not detect food from image. Please enter the food name manually.'
+                            'error': 'Could not detect food from image. Please enter the food name manually or add CLARIFAI_API_KEY to Secrets.'
                         })
                         
                 except Exception as e:
@@ -206,65 +218,105 @@ def analyze_food(request):
                     'error': 'Please upload an image or enter the food name'
                 })
             
-            # Use API Ninjas free nutrition API
-            api_url = f'https://api.api-ninjas.com/v1/nutrition?query={food_name}'
-            api_key = os.environ.get('NUTRITION_API_KEY', '')
+            # Use Edamam Food Database API for nutrition data
+            edamam_app_id = os.environ.get('EDAMAM_APP_ID', '')
+            edamam_app_key = os.environ.get('EDAMAM_APP_KEY', '')
             
-            headers = {}
-            if api_key:
-                headers['X-Api-Key'] = api_key
-            
-            response = requests.get(api_url, headers=headers)
-            
-            if response.status_code == 200:
-                api_data = response.json()
+            if edamam_app_id and edamam_app_key:
+                # Use Edamam Nutrition Analysis API
+                edamam_url = 'https://api.edamam.com/api/nutrition-details'
+                params = {
+                    'app_id': edamam_app_id,
+                    'app_key': edamam_app_key
+                }
+                payload = {
+                    'title': food_name,
+                    'ingr': [f'1 serving of {food_name}']
+                }
                 
-                if api_data and len(api_data) > 0:
-                    # Aggregate nutrition from all items in the query
-                    total_calories = sum(item.get('calories', 0) for item in api_data)
-                    total_protein = sum(item.get('protein_g', 0) for item in api_data)
-                    total_carbs = sum(item.get('carbohydrates_total_g', 0) for item in api_data)
-                    total_fats = sum(item.get('fat_total_g', 0) for item in api_data)
-                    total_fiber = sum(item.get('fiber_g', 0) for item in api_data)
-                    total_sugar = sum(item.get('sugar_g', 0) for item in api_data)
+                response = requests.post(edamam_url, params=params, json=payload, timeout=10)
+                
+                if response.status_code == 200:
+                    api_data = response.json()
                     
-                    # Get food names
-                    food_names = ', '.join(item.get('name', food_name) for item in api_data)
+                    total_nutrients = api_data.get('totalNutrients', {})
                     
-                    nutrition_data = {
-                        'food_name': food_names.title(),
-                        'calories': round(total_calories, 1),
-                        'protein': round(total_protein, 1),
-                        'carbs': round(total_carbs, 1),
-                        'fats': round(total_fats, 1),
-                        'fiber': round(total_fiber, 1),
-                        'serving_size': f'{len(api_data)} item(s)',
-                        'health_tips': f'This meal contains {round(total_sugar, 1)}g of sugar. Balance with vegetables for a healthier meal.'
-                    }
-                else:
-                    # Fallback with estimated values
                     nutrition_data = {
                         'food_name': food_name.title(),
-                        'calories': 150,
-                        'protein': 5,
-                        'carbs': 20,
-                        'fats': 5,
-                        'fiber': 2,
+                        'calories': round(api_data.get('calories', 0), 1),
+                        'protein': round(total_nutrients.get('PROCNT', {}).get('quantity', 0), 1),
+                        'carbs': round(total_nutrients.get('CHOCDF', {}).get('quantity', 0), 1),
+                        'fats': round(total_nutrients.get('FAT', {}).get('quantity', 0), 1),
+                        'fiber': round(total_nutrients.get('FIBTG', {}).get('quantity', 0), 1),
                         'serving_size': '1 serving',
-                        'health_tips': 'Nutrition data not found. Values shown are estimates.'
+                        'health_tips': f'This meal contains {round(total_nutrients.get("SUGAR", {}).get("quantity", 0), 1)}g of sugar.'
                     }
+                else:
+                    # Fallback to API Ninjas
+                    api_url = f'https://api.api-ninjas.com/v1/nutrition?query={food_name}'
+                    api_key = os.environ.get('NUTRITION_API_KEY', '')
+                    
+                    headers = {'X-Api-Key': api_key} if api_key else {}
+                    response = requests.get(api_url, headers=headers, timeout=10)
+                    
+                    if response.status_code == 200:
+                        api_data = response.json()
+                        if api_data and len(api_data) > 0:
+                            item = api_data[0]
+                            nutrition_data = {
+                                'food_name': item.get('name', food_name).title(),
+                                'calories': round(item.get('calories', 0), 1),
+                                'protein': round(item.get('protein_g', 0), 1),
+                                'carbs': round(item.get('carbohydrates_total_g', 0), 1),
+                                'fats': round(item.get('fat_total_g', 0), 1),
+                                'fiber': round(item.get('fiber_g', 0), 1),
+                                'serving_size': f"{item.get('serving_size_g', 100)}g",
+                                'health_tips': f'Contains {round(item.get("sugar_g", 0), 1)}g of sugar.'
+                            }
+                        else:
+                            raise Exception('No data')
+                    else:
+                        raise Exception('API error')
             else:
-                # API error - use fallback
-                nutrition_data = {
-                    'food_name': food_name.title(),
-                    'calories': 150,
-                    'protein': 5,
-                    'carbs': 20,
-                    'fats': 5,
-                    'fiber': 2,
-                    'serving_size': '1 serving',
-                    'health_tips': 'Could not fetch nutrition data. Values shown are estimates.'
-                }
+                # Fallback to API Ninjas if Edamam not configured
+                api_url = f'https://api.api-ninjas.com/v1/nutrition?query={food_name}'
+                api_key = os.environ.get('NUTRITION_API_KEY', '')
+                
+                headers = {'X-Api-Key': api_key} if api_key else {}
+                response = requests.get(api_url, headers=headers, timeout=10)
+                
+                if response.status_code == 200:
+                    api_data = response.json()
+                    if api_data and len(api_data) > 0:
+                        item = api_data[0]
+                        nutrition_data = {
+                            'food_name': item.get('name', food_name).title(),
+                            'calories': round(item.get('calories', 0), 1),
+                            'protein': round(item.get('protein_g', 0), 1),
+                            'carbs': round(item.get('carbohydrates_total_g', 0), 1),
+                            'fats': round(item.get('fat_total_g', 0), 1),
+                            'fiber': round(item.get('fiber_g', 0), 1),
+                            'serving_size': f"{item.get('serving_size_g', 100)}g",
+                            'health_tips': f'Contains {round(item.get("sugar_g", 0), 1)}g of sugar.'
+                        }
+                    else:
+                        raise Exception('No data')
+                else:
+                    raise Exception('API error')
+            
+            except Exception as e:
+            # Final fallback with estimated values
+            print(f"Nutrition API error: {str(e)}")
+            nutrition_data = {
+                'food_name': food_name.title() if food_name else 'Unknown Food',
+                'calories': 150,
+                'protein': 5,
+                'carbs': 20,
+                'fats': 5,
+                'fiber': 2,
+                'serving_size': '1 serving',
+                'health_tips': 'Nutrition data unavailable. Values shown are estimates. Consider adding API keys to Secrets.'
+            }
             
             # Save meal if requested
             save_meal = request.POST.get('save_meal', 'false') == 'true'
