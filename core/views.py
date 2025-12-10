@@ -153,17 +153,19 @@ def analyze_food(request):
     if request.method == 'POST':
         try:
             import os
-            from openai import OpenAI
+            import base64 as b64
+            from google import genai
+            from google.genai import types
             
-            # Get OpenAI API key from environment
-            api_key = os.environ.get('OPENAI_API_KEY')
+            # Using Google Gemini API for food analysis
+            api_key = os.environ.get('GEMINI_API_KEY')
             if not api_key:
                 return JsonResponse({
                     'success': False, 
-                    'error': 'OpenAI API key not configured. Please add it in the Secrets tab.'
+                    'error': 'Gemini API key not configured. Please add GEMINI_API_KEY in the Secrets tab.'
                 })
             
-            client = OpenAI(api_key=api_key)
+            client = genai.Client(api_key=api_key)
             
             food_name = request.POST.get('food_name', '').strip()
             image_data = request.POST.get('image_data', '').strip()
@@ -176,35 +178,49 @@ def analyze_food(request):
                     'error': 'Please provide either a food image or food name'
                 })
             
+            prompt = """Analyze this food and provide detailed nutrition information.
+            Return ONLY a valid JSON object with this exact format (no markdown, no extra text):
+            {
+                "food_name": "name of the food",
+                "calories": 0,
+                "protein": 0,
+                "carbs": 0,
+                "fats": 0,
+                "fiber": 0,
+                "serving_size": "estimated serving size",
+                "health_tips": "brief health tip about this food"
+            }
+            Use realistic nutritional values based on a standard serving."""
+            
             if image_data:
-                prompt = """Analyze this food image and provide detailed nutrition information.
-                Return ONLY a valid JSON object with this exact format (no markdown, no extra text):
-                {
-                    "food_name": "name of the food",
-                    "calories": 0,
-                    "protein": 0,
-                    "carbs": 0,
-                    "fats": 0,
-                    "fiber": 0,
-                    "serving_size": "estimated serving size",
-                    "health_tips": "brief health tip about this food"
-                }"""
+                # Extract base64 data and MIME type from data URL
+                mime_type = "image/jpeg"  # default
+                if ',' in image_data:
+                    header, image_base64 = image_data.split(',', 1)
+                    # Parse MIME type from header (e.g., "data:image/png;base64")
+                    if 'image/png' in header:
+                        mime_type = "image/png"
+                    elif 'image/webp' in header:
+                        mime_type = "image/webp"
+                    elif 'image/gif' in header:
+                        mime_type = "image/gif"
+                else:
+                    image_base64 = image_data
                 
-                response = client.chat.completions.create(
-                    model="gpt-4o",
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": [
-                                {"type": "text", "text": prompt},
-                                {"type": "image_url", "image_url": {"url": image_data}}
-                            ]
-                        }
+                image_bytes = b64.b64decode(image_base64)
+                
+                response = client.models.generate_content(
+                    model="gemini-2.5-flash",
+                    contents=[
+                        types.Part.from_bytes(
+                            data=image_bytes,
+                            mime_type=mime_type,
+                        ),
+                        prompt,
                     ],
-                    max_tokens=500
                 )
             else:
-                prompt = f"""Provide detailed nutrition information for: {food_name}
+                text_prompt = f"""Provide detailed nutrition information for: {food_name}
                 Return ONLY a valid JSON object with this exact format (no markdown, no extra text):
                 {{
                     "food_name": "{food_name}",
@@ -218,13 +234,12 @@ def analyze_food(request):
                 }}
                 Use realistic nutritional values based on a standard serving."""
                 
-                response = client.chat.completions.create(
-                    model="gpt-4o",
-                    messages=[{"role": "user", "content": prompt}],
-                    max_tokens=500
+                response = client.models.generate_content(
+                    model="gemini-2.5-flash",
+                    contents=text_prompt,
                 )
             
-            result_text = response.choices[0].message.content
+            result_text = response.text if response.text else ""
             
             # Parse the response
             try:

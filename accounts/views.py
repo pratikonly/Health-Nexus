@@ -15,8 +15,13 @@ def auth_view(request):
 
 def login_view(request):
     if request.method == 'POST':
-        email = request.POST.get('email')
+        email = request.POST.get('email', '').strip()
         password = request.POST.get('password')
+        
+        # Validate email format
+        if not email or '@' not in email:
+            messages.error(request, 'Please enter a valid email address.', extra_tags='invalid_password')
+            return redirect('auth')
         
         try:
             user_obj = User.objects.get(email=email)
