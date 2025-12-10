@@ -468,6 +468,19 @@
         display: flex;
         align-items: center;
         gap: 8px;
+        flex-wrap: wrap;
+    }
+    
+    .create-account-link {
+        color: var(--primary);
+        font-weight: 600;
+        text-decoration: underline;
+        cursor: pointer;
+        margin-left: 4px;
+    }
+    
+    .create-account-link:hover {
+        color: #c47862;
     }
     
     @media (max-width: 900px) {
@@ -536,10 +549,22 @@
                 
                 <form class="auth-form-content active" id="loginForm" action="{% url 'login' %}" method="POST">
                     {% csrf_token %}
+                    {% if messages %}
+                    {% for message in messages %}
+                    <div class="inline-notification {% if message.tags %}{{ message.tags }}{% endif %} show" id="loginNotification">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span id="loginNotificationText">{{ message }}</span>
+                        {% if 'email_not_exist' in message.tags %}
+                        <a href="javascript:void(0)" onclick="showRegister()" class="create-account-link">Create one</a>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    {% else %}
                     <div class="inline-notification error" id="loginNotification">
                         <i class="fas fa-exclamation-circle"></i>
                         <span id="loginNotificationText"></span>
                     </div>
+                    {% endif %}
                     <div class="auth-input-group">
                         <label for="login-email">
                             <i class="fas fa-envelope"></i> Email

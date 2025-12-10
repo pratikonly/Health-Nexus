@@ -28,7 +28,7 @@ def login_view(request):
             else:
                 messages.error(request, 'Invalid password. Please try again.')
         except User.DoesNotExist:
-            messages.error(request, 'Account does not exist with this email. Please create one!')
+            messages.error(request, 'Email not found.', extra_tags='email_not_exist')
     
     return redirect('auth')
 
