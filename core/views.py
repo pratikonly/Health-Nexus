@@ -159,11 +159,51 @@ def analyze_food(request):
             image_data = request.POST.get('image_data', '').strip()
             meal_type = request.POST.get('meal_type', 'snack')
             
+            # If image is provided, detect food from image
+            if image_data and not food_name:
+                try:
+                    # Use Calorie Mama API for food recognition
+                    calorie_mama_url = 'https://api-2445582032290.production.gw.apicast.io/v1/foodrecognition'
+                    calorie_mama_key = os.environ.get('CALORIE_MAMA_API_KEY', '')
+                    
+                    # Convert base64 to bytes
+                    if ',' in image_data:
+                        image_data = image_data.split(',')[1]
+                    
+                    image_bytes = base64.b64decode(image_data)
+                    
+                    # Send image to Calorie Mama API
+                    files = {'media': ('food.jpg', image_bytes, 'image/jpeg')}
+                    headers = {'Authorization': f'Bearer {calorie_mama_key}'} if calorie_mama_key else {}
+                    
+                    recognition_response = requests.post(calorie_mama_url, files=files, headers=headers, timeout=10)
+                    
+                    if recognition_response.status_code == 200:
+                        recognition_data = recognition_response.json()
+                        # Extract detected food name
+                        if recognition_data and len(recognition_data) > 0:
+                            food_name = recognition_data[0].get('name', '')
+                    
+                    # Fallback: Use a simple food detection without API
+                    if not food_name:
+                        # Since we don't have a free reliable API, inform user to enter name
+                        return JsonResponse({
+                            'success': False,
+                            'error': 'Could not detect food from image. Please enter the food name manually.'
+                        })
+                        
+                except Exception as e:
+                    print(f"Food recognition error: {str(e)}")
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Could not detect food from image. Please enter the food name manually.'
+                    })
+            
             # Validate input - food name is required for nutrition lookup
             if not food_name:
                 return JsonResponse({
                     'success': False, 
-                    'error': 'Please enter the food name to get nutrition information'
+                    'error': 'Please upload an image or enter the food name'
                 })
             
             # Use API Ninjas free nutrition API

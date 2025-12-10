@@ -31,8 +31,8 @@
         </div>
         
         <div class="food-name-input">
-            <label for="foodName"><i class="fas fa-search"></i> Enter Food Name</label>
-            <input type="text" id="foodName" placeholder="e.g., Grilled Chicken Salad">
+            <label for="foodName"><i class="fas fa-search"></i> Enter Food Name (Optional if image uploaded)</label>
+            <input type="text" id="foodName" placeholder="Leave empty to auto-detect from image">
         </div>
         
         <div class="meal-type-select">
@@ -167,6 +167,14 @@
         if (!currentImageData && !foodName) {
             alert('Please upload an image or enter a food name.');
             return;
+        }
+        
+        // Show loading with appropriate message
+        const loadingText = document.querySelector('#loadingOverlay p');
+        if (currentImageData && !foodName) {
+            loadingText.textContent = 'Detecting food from image...';
+        } else {
+            loadingText.textContent = 'Analyzing your food...';
         }
         
         document.getElementById('loadingOverlay').style.display = 'flex';
