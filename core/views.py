@@ -337,26 +337,49 @@ def settings_view(request):
     profile, created = UserProfile.objects.get_or_create(user=request.user)
     
     if request.method == 'POST':
-        user = request.user
-        user.first_name = request.POST.get('first_name', '')
-        user.last_name = request.POST.get('last_name', '')
-        user.email = request.POST.get('email', '')
-        user.save()
+        try:
+            # Update user information
+            user = request.user
+            user.first_name = request.POST.get('first_name', '').strip()
+            user.last_name = request.POST.get('last_name', '').strip()
+            user.email = request.POST.get('email', '').strip()
+            user.save()
+            
+            # Update profile gender
+            gender = request.POST.get('gender', '').strip()
+            if gender:
+                profile.gender = gender
+            
+            # Update health metrics
+            height = request.POST.get('height', '').strip()
+            weight = request.POST.get('weight', '').strip()
+            target_weight = request.POST.get('target_weight', '').strip()
+            
+            profile.height = float(height) if height else None
+            profile.weight = float(weight) if weight else None
+            profile.target_weight = float(target_weight) if target_weight else None
+            
+            # Update calorie goal
+            calorie_goal = request.POST.get('daily_calorie_goal', '').strip()
+            profile.daily_calorie_goal = int(calorie_goal) if calorie_goal else 2000
+            
+            # Update dietary preference
+            dietary_pref = request.POST.get('dietary_preference', '').strip()
+            profile.dietary_preference = dietary_pref if dietary_pref else 'none'
+            
+            # Update date of birth
+            dob = request.POST.get('date_of_birth', '').strip()
+            if dob:
+                profile.date_of_birth = dob
+            
+            profile.save()
+            
+            messages.success(request, 'Settings updated successfully!')
+        except ValueError as e:
+            messages.error(request, 'Please enter valid numbers for height, weight, and calorie goal.')
+        except Exception as e:
+            messages.error(request, f'An error occurred: {str(e)}')
         
-        profile.height = float(request.POST.get('height', 0)) or None
-        profile.weight = float(request.POST.get('weight', 0)) or None
-        profile.target_weight = float(request.POST.get('target_weight', 0)) or None
-        profile.daily_calorie_goal = int(request.POST.get('daily_calorie_goal', 2000))
-        profile.dietary_preference = request.POST.get('dietary_preference', 'none')
-        profile.gender = request.POST.get('gender', '')
-        
-        dob = request.POST.get('date_of_birth')
-        if dob:
-            profile.date_of_birth = dob
-        
-        profile.save()
-        
-        messages.success(request, 'Settings updated successfully!')
         return redirect('settings')
     
     return render(request, 'core/settings.html', {'profile': profile})
