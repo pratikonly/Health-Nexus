@@ -31,7 +31,13 @@
                     <i class="fas fa-user"></i>
                 {% endif %}
             </div>
-            <span class="user-name">{{ user.username }}</span>
+            <span class="user-name">
+                {% if user.first_name %}
+                    {{ user.first_name }} {% if user.last_name %}{{ user.last_name }}{% endif %}
+                {% else %}
+                    {{ user.username }}
+                {% endif %}
+            </span>
         </div>
 
         <nav class="sidebar-nav">
