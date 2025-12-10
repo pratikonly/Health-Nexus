@@ -222,37 +222,43 @@ def analyze_food(request):
             edamam_app_id = os.environ.get('EDAMAM_APP_ID', '')
             edamam_app_key = os.environ.get('EDAMAM_APP_KEY', '')
 
+            nutrition_data = None
+
             if edamam_app_id and edamam_app_key:
                 # Use Edamam Nutrition Analysis API
-                edamam_url = 'https://api.edamam.com/api/nutrition-details'
-                params = {
-                    'app_id': edamam_app_id,
-                    'app_key': edamam_app_key
-                }
-                payload = {
-                    'title': food_name,
-                    'ingr': [f'1 serving of {food_name}']
-                }
-
-                response = requests.post(edamam_url, params=params, json=payload, timeout=10)
-
-                if response.status_code == 200:
-                    api_data = response.json()
-
-                    total_nutrients = api_data.get('totalNutrients', {})
-
-                    nutrition_data = {
-                        'food_name': food_name.title(),
-                        'calories': round(api_data.get('calories', 0), 1),
-                        'protein': round(total_nutrients.get('PROCNT', {}).get('quantity', 0), 1),
-                        'carbs': round(total_nutrients.get('CHOCDF', {}).get('quantity', 0), 1),
-                        'fats': round(total_nutrients.get('FAT', {}).get('quantity', 0), 1),
-                        'fiber': round(total_nutrients.get('FIBTG', {}).get('quantity', 0), 1),
-                        'serving_size': '1 serving',
-                        'health_tips': f'This meal contains {round(total_nutrients.get("SUGAR", {}).get("quantity", 0), 1)}g of sugar.'
+                try:
+                    edamam_url = 'https://api.edamam.com/api/nutrition-details'
+                    params = {
+                        'app_id': edamam_app_id,
+                        'app_key': edamam_app_key
                     }
-                else:
-                    # Fallback to API Ninjas
+                    payload = {
+                        'title': food_name,
+                        'ingr': [f'1 serving of {food_name}']
+                    }
+
+                    response = requests.post(edamam_url, params=params, json=payload, timeout=10)
+
+                    if response.status_code == 200:
+                        api_data = response.json()
+                        total_nutrients = api_data.get('totalNutrients', {})
+
+                        nutrition_data = {
+                            'food_name': food_name.title(),
+                            'calories': round(api_data.get('calories', 0), 1),
+                            'protein': round(total_nutrients.get('PROCNT', {}).get('quantity', 0), 1),
+                            'carbs': round(total_nutrients.get('CHOCDF', {}).get('quantity', 0), 1),
+                            'fats': round(total_nutrients.get('FAT', {}).get('quantity', 0), 1),
+                            'fiber': round(total_nutrients.get('FIBTG', {}).get('quantity', 0), 1),
+                            'serving_size': '1 serving',
+                            'health_tips': f'This meal contains {round(total_nutrients.get("SUGAR", {}).get("quantity", 0), 1)}g of sugar.'
+                        }
+                except Exception as e:
+                    print(f"Edamam API error: {str(e)}")
+
+            # Fallback to API Ninjas if Edamam not configured or failed
+            if not nutrition_data:
+                try:
                     api_url = f'https://api.api-ninjas.com/v1/nutrition?query={food_name}'
                     api_key = os.environ.get('NUTRITION_API_KEY', '')
 
@@ -273,50 +279,21 @@ def analyze_food(request):
                                 'serving_size': f"{item.get('serving_size_g', 100)}g",
                                 'health_tips': f'Contains {round(item.get("sugar_g", 0), 1)}g of sugar.'
                             }
-                        else:
-                            raise Exception('No data')
-                    else:
-                        raise Exception('API error')
-            else:
-                # Fallback to API Ninjas if Edamam not configured
-                api_url = f'https://api.api-ninjas.com/v1/nutrition?query={food_name}'
-                api_key = os.environ.get('NUTRITION_API_KEY', '')
+                except Exception as e:
+                    print(f"API Ninjas error: {str(e)}")
 
-                headers = {'X-Api-Key': api_key} if api_key else {}
-                response = requests.get(api_url, headers=headers, timeout=10)
-
-                if response.status_code == 200:
-                    api_data = response.json()
-                    if api_data and len(api_data) > 0:
-                        item = api_data[0]
-                        nutrition_data = {
-                            'food_name': item.get('name', food_name).title(),
-                            'calories': round(item.get('calories', 0), 1),
-                            'protein': round(item.get('protein_g', 0), 1),
-                            'carbs': round(item.get('carbohydrates_total_g', 0), 1),
-                            'fats': round(item.get('fat_total_g', 0), 1),
-                            'fiber': round(item.get('fiber_g', 0), 1),
-                            'serving_size': f"{item.get('serving_size_g', 100)}g",
-                            'health_tips': f'Contains {round(item.get("sugar_g", 0), 1)}g of sugar.'
-                        }
-                    else:
-                        raise Exception('No data')
-                else:
-                    raise Exception('API error')
-
-        except Exception as e:
             # Final fallback with estimated values
-            print(f"Nutrition API error: {str(e)}")
-            nutrition_data = {
-                'food_name': food_name.title() if food_name else 'Unknown Food',
-                'calories': 150,
-                'protein': 5,
-                'carbs': 20,
-                'fats': 5,
-                'fiber': 2,
-                'serving_size': '1 serving',
-                'health_tips': 'Nutrition data unavailable. Values shown are estimates. Consider adding API keys to Secrets.'
-            }
+            if not nutrition_data:
+                nutrition_data = {
+                    'food_name': food_name.title() if food_name else 'Unknown Food',
+                    'calories': 150,
+                    'protein': 5,
+                    'carbs': 20,
+                    'fats': 5,
+                    'fiber': 2,
+                    'serving_size': '1 serving',
+                    'health_tips': 'Nutrition data unavailable. Values shown are estimates. Consider adding API keys to Secrets.'
+                }
 
             # Save meal if requested
             save_meal = request.POST.get('save_meal', 'false') == 'true'
@@ -348,71 +325,14 @@ def analyze_food(request):
 
             return JsonResponse({'success': True, 'data': nutrition_data})
 
-        else: # This else belongs to the initial `if edamam_app_id and edamam_app_key:` block
-            # Fallback to API Ninjas if Edamam not configured
-            api_url = f'https://api.api-ninjas.com/v1/nutrition?query={food_name}'
-            api_key = os.environ.get('NUTRITION_API_KEY', '')
-
-            headers = {'X-Api-Key': api_key} if api_key else {}
-            response = requests.get(api_url, headers=headers, timeout=10)
-
-            if response.status_code == 200:
-                api_data = response.json()
-                if api_data and len(api_data) > 0:
-                    item = api_data[0]
-                    nutrition_data = {
-                        'food_name': item.get('name', food_name).title(),
-                        'calories': round(item.get('calories', 0), 1),
-                        'protein': round(item.get('protein_g', 0), 1),
-                        'carbs': round(item.get('carbohydrates_total_g', 0), 1),
-                        'fats': round(item.get('fat_total_g', 0), 1),
-                        'fiber': round(item.get('fiber_g', 0), 1),
-                        'serving_size': f"{item.get('serving_size_g', 100)}g",
-                        'health_tips': f'Contains {round(item.get("sugar_g", 0), 1)}g of sugar.'
-                    }
-                else:
-                    raise Exception('No data')
-            else:
-                raise Exception('API error')
-
-        # This part is outside the `try...except` block for `Exception as e`
-        # It handles the successful retrieval of nutrition_data and saving the meal.
-        save_meal = request.POST.get('save_meal', 'false') == 'true'
-        if save_meal:
-            meal = MealLog.objects.create(
-                user=request.user,
-                meal_type=meal_type,
-                food_name=nutrition_data.get('food_name', food_name),
-                calories=float(nutrition_data.get('calories', 0)),
-                protein=float(nutrition_data.get('protein', 0)),
-                carbs=float(nutrition_data.get('carbs', 0)),
-                fats=float(nutrition_data.get('fats', 0)),
-                fiber=float(nutrition_data.get('fiber', 0)),
-                serving_size=nutrition_data.get('serving_size', '1 serving')
-            )
-
-            if image_data and ',' in image_data:
-                try:
-                    format, imgstr = image_data.split(';base64,')
-                    ext = format.split('/')[-1]
-                    img_data = ContentFile(base64.b64decode(imgstr), name=f'food_{meal.id}.{ext}')
-                    meal.food_image.save(f'food_{meal.id}.{ext}', img_data, save=True)
-                except Exception as img_error:
-                    print(f"Image save error: {img_error}")
-
-            nutrition_data['saved'] = True
-            nutrition_data['meal_id'] = meal.id
-
-        return JsonResponse({'success': True, 'data': nutrition_data})
-
-    except Exception as e:
-        import traceback
-        print(f"Error in analyze_food: {str(e)}")
-        print(traceback.format_exc())
-        return JsonResponse({
-            'success': False,
-            'error': f'An error occurred: {str(e)}'
-        })
+        except Exception as e:
+            import traceback
+            print(f"Error in analyze_food: {str(e)}")
+            print(traceback.format_exc())
+            return JsonResponse({
+                'success': False,
+                'error': f'An error occurred: {str(e)}'
+            })
 
     return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
