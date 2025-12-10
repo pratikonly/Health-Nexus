@@ -1,11 +1,11 @@
 {% extends 'core/dashboard_base.html' %}
 {% load static %}
 
-{% block title %}AI Food Analyzer{% endblock %}
+{% block title %}Food Scanner{% endblock %}
 
 {% block dashboard_content %}
 <div class="page-header">
-    <h1><i class="fas fa-camera"></i> AI Food Analyzer</h1>
+    <h1><i class="fas fa-camera"></i> Food Scanner</h1>
     <p>Upload a food image or enter the food name to get detailed nutrition information.</p>
 </div>
 
@@ -161,7 +161,7 @@
     }
     
     function analyzeFood() {
-        const foodName = document.getElementById('foodName').value;
+        const foodName = document.getElementById('foodName').value.trim();
         const mealType = document.getElementById('mealType').value;
         
         if (!currentImageData && !foodName) {
@@ -178,14 +178,21 @@
             formData.append('image_data', currentImageData);
         }
         
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '{{ csrf_token }}';
+        
         fetch('{% url "analyze_food" %}', {
             method: 'POST',
             body: formData,
             headers: {
-                'X-CSRFToken': '{{ csrf_token }}'
+                'X-CSRFToken': csrfToken
             }
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
             document.getElementById('loadingOverlay').style.display = 'none';
             
@@ -193,12 +200,14 @@
                 currentNutritionData = data.data;
                 displayResults(data.data);
             } else {
-                alert('Error: ' + data.error);
+                alert('Error: ' + (data.error || 'Unknown error occurred'));
+                console.error('API Error:', data);
             }
         })
         .catch(error => {
             document.getElementById('loadingOverlay').style.display = 'none';
-            alert('Error analyzing food. Please try again.');
+            console.error('Fetch error:', error);
+            alert('Error analyzing food. Please check console for details.');
         });
     }
     

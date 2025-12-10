@@ -149,33 +149,46 @@ def ai_cam(request):
     return render(request, 'core/ai_cam.html', {'recent_analyses': recent_analyses})
 
 @login_required
-@csrf_exempt
 def analyze_food(request):
     if request.method == 'POST':
         try:
+            import os
             from openai import OpenAI
             
-            client = OpenAI()
+            # Get OpenAI API key from environment
+            api_key = os.environ.get('OPENAI_API_KEY')
+            if not api_key:
+                return JsonResponse({
+                    'success': False, 
+                    'error': 'OpenAI API key not configured. Please add it in the Secrets tab.'
+                })
             
-            food_name = request.POST.get('food_name', '')
-            image_data = request.POST.get('image_data', '')
+            client = OpenAI(api_key=api_key)
+            
+            food_name = request.POST.get('food_name', '').strip()
+            image_data = request.POST.get('image_data', '').strip()
             meal_type = request.POST.get('meal_type', 'snack')
             
+            # Validate input
+            if not image_data and not food_name:
+                return JsonResponse({
+                    'success': False, 
+                    'error': 'Please provide either a food image or food name'
+                })
+            
             if image_data:
-                prompt = f"""Analyze this food image and provide detailed nutrition information.
-                Return ONLY a JSON object with this exact format:
-                {{
+                prompt = """Analyze this food image and provide detailed nutrition information.
+                Return ONLY a valid JSON object with this exact format (no markdown, no extra text):
+                {
                     "food_name": "name of the food",
-                    "calories": number,
-                    "protein": number in grams,
-                    "carbs": number in grams,
-                    "fats": number in grams,
-                    "fiber": number in grams,
+                    "calories": 0,
+                    "protein": 0,
+                    "carbs": 0,
+                    "fats": 0,
+                    "fiber": 0,
                     "serving_size": "estimated serving size",
                     "health_tips": "brief health tip about this food"
-                }}"""
-                
-                image_content = image_data.split(',')[1] if ',' in image_data else image_data
+                }"""
                 
                 response = client.chat.completions.create(
                     model="gpt-4o",
@@ -192,17 +205,18 @@ def analyze_food(request):
                 )
             else:
                 prompt = f"""Provide detailed nutrition information for: {food_name}
-                Return ONLY a JSON object with this exact format:
+                Return ONLY a valid JSON object with this exact format (no markdown, no extra text):
                 {{
                     "food_name": "{food_name}",
-                    "calories": number,
-                    "protein": number in grams,
-                    "carbs": number in grams,
-                    "fats": number in grams,
-                    "fiber": number in grams,
+                    "calories": 0,
+                    "protein": 0,
+                    "carbs": 0,
+                    "fats": 0,
+                    "fiber": 0,
                     "serving_size": "typical serving size",
                     "health_tips": "brief health tip about this food"
-                }}"""
+                }}
+                Use realistic nutritional values based on a standard serving."""
                 
                 response = client.chat.completions.create(
                     model="gpt-4o",
@@ -212,44 +226,45 @@ def analyze_food(request):
             
             result_text = response.choices[0].message.content
             
+            # Parse the response
             try:
+                # Remove markdown code blocks if present
                 if '```json' in result_text:
                     result_text = result_text.split('```json')[1].split('```')[0]
                 elif '```' in result_text:
                     result_text = result_text.split('```')[1].split('```')[0]
                 
                 nutrition_data = json.loads(result_text.strip())
-            except json.JSONDecodeError:
-                nutrition_data = {
-                    "food_name": food_name or "Unknown Food",
-                    "calories": 150,
-                    "protein": 5,
-                    "carbs": 20,
-                    "fats": 5,
-                    "fiber": 2,
-                    "serving_size": "1 serving",
-                    "health_tips": "Unable to analyze. Please try again."
-                }
+            except json.JSONDecodeError as e:
+                return JsonResponse({
+                    'success': False, 
+                    'error': f'Failed to parse nutrition data: {str(e)}'
+                })
             
+            # Save meal if requested
             save_meal = request.POST.get('save_meal', 'false') == 'true'
             if save_meal:
                 meal = MealLog.objects.create(
                     user=request.user,
                     meal_type=meal_type,
                     food_name=nutrition_data.get('food_name', food_name),
-                    calories=nutrition_data.get('calories', 0),
-                    protein=nutrition_data.get('protein', 0),
-                    carbs=nutrition_data.get('carbs', 0),
-                    fats=nutrition_data.get('fats', 0),
-                    fiber=nutrition_data.get('fiber', 0),
+                    calories=float(nutrition_data.get('calories', 0)),
+                    protein=float(nutrition_data.get('protein', 0)),
+                    carbs=float(nutrition_data.get('carbs', 0)),
+                    fats=float(nutrition_data.get('fats', 0)),
+                    fiber=float(nutrition_data.get('fiber', 0)),
                     serving_size=nutrition_data.get('serving_size', '1 serving')
                 )
                 
+                # Save image if provided
                 if image_data and ',' in image_data:
-                    format, imgstr = image_data.split(';base64,')
-                    ext = format.split('/')[-1]
-                    img_data = ContentFile(base64.b64decode(imgstr), name=f'food_{meal.id}.{ext}')
-                    meal.food_image.save(f'food_{meal.id}.{ext}', img_data, save=True)
+                    try:
+                        format, imgstr = image_data.split(';base64,')
+                        ext = format.split('/')[-1]
+                        img_data = ContentFile(base64.b64decode(imgstr), name=f'food_{meal.id}.{ext}')
+                        meal.food_image.save(f'food_{meal.id}.{ext}', img_data, save=True)
+                    except Exception as img_error:
+                        print(f"Image save error: {img_error}")
                 
                 nutrition_data['saved'] = True
                 nutrition_data['meal_id'] = meal.id
@@ -257,7 +272,13 @@ def analyze_food(request):
             return JsonResponse({'success': True, 'data': nutrition_data})
             
         except Exception as e:
-            return JsonResponse({'success': False, 'error': str(e)})
+            import traceback
+            print(f"Error in analyze_food: {str(e)}")
+            print(traceback.format_exc())
+            return JsonResponse({
+                'success': False, 
+                'error': f'An error occurred: {str(e)}'
+            })
     
     return JsonResponse({'success': False, 'error': 'Invalid request method'})
 

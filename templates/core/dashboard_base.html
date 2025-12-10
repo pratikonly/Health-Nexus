@@ -19,7 +19,7 @@
             </a>
         </div>
     </nav>
-    
+
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="user-avatar">
@@ -33,7 +33,7 @@
             </div>
             <span class="user-name">{{ user.username }}</span>
         </div>
-        
+
         <nav class="sidebar-nav">
             <a href="{% url 'home' %}" class="nav-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
                 <i class="fas fa-home"></i>
@@ -64,14 +64,12 @@
                 <span>Settings</span>
             </a>
         </nav>
-        
+
         <div class="sidebar-footer">
-            <div class="footer-credit">
-                Made by <strong>Debug Delta</strong>
-            </div>
+            Made by <strong style="color: #acebd2;">Debug Delta</strong>
         </div>
     </aside>
-    
+
     <main class="main-content" id="mainContent">
         {% block dashboard_content %}{% endblock %}
     </main>
