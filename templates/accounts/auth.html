@@ -24,7 +24,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 40px;
+        padding: 20px;
         transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     }
     
@@ -42,27 +42,7 @@
     
     .auth-form-container {
         width: 100%;
-        max-width: 400px;
-    }
-    
-    .auth-form-header {
-        text-align: center;
-        margin-bottom: 30px;
-    }
-    
-    .auth-form-header h1 {
-        font-size: 32px;
-        color: var(--primary);
-        margin-bottom: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 12px;
-    }
-    
-    .auth-form-header p {
-        color: var(--grey);
-        font-size: 16px;
+        max-width: 340px;
     }
     
     .auth-toggle-container {
@@ -70,13 +50,13 @@
         position: relative;
         background: var(--light);
         border-radius: var(--radius-sm);
-        padding: 4px;
-        margin-bottom: 30px;
+        padding: 3px;
+        margin-bottom: 20px;
     }
     
     .auth-toggle-btn {
         flex: 1;
-        padding: 14px;
+        padding: 10px;
         border: none;
         background: none;
         font-family: inherit;
@@ -85,7 +65,7 @@
         z-index: 1;
         transition: color 0.3s ease;
         color: var(--grey);
-        font-size: 15px;
+        font-size: 14px;
     }
     
     .auth-toggle-btn.active {
@@ -94,41 +74,41 @@
     
     .auth-toggle-slider {
         position: absolute;
-        top: 4px;
+        top: 3px;
         left: 0;
         width: 50%;
-        height: calc(100% - 8px);
+        height: calc(100% - 6px);
         background: var(--primary);
         border-radius: 6px;
         transition: left 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     }
     
     .auth-input-group {
-        margin-bottom: 20px;
+        margin-bottom: 14px;
         position: relative;
     }
     
     .auth-input-group label {
         display: block;
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 500;
-        margin-bottom: 8px;
+        margin-bottom: 5px;
         color: var(--dark);
     }
     
     .auth-input-group label i {
-        margin-right: 8px;
+        margin-right: 6px;
         color: var(--primary);
     }
     
     .auth-input-group input,
     .auth-input-group select {
         width: 100%;
-        padding: 14px 16px;
+        padding: 10px 12px;
         border: 2px solid #e2e8f0;
         border-radius: var(--radius-sm);
         font-family: inherit;
-        font-size: 14px;
+        font-size: 13px;
         transition: all 0.3s ease;
         background: var(--white);
     }
@@ -137,31 +117,32 @@
     .auth-input-group select:focus {
         outline: none;
         border-color: var(--primary);
-        box-shadow: 0 0 0 4px rgba(211, 137, 114, 0.15);
+        box-shadow: 0 0 0 3px rgba(211, 137, 114, 0.15);
     }
     
     .auth-submit-btn {
         width: 100%;
-        padding: 16px;
+        padding: 12px;
         background: var(--primary);
         color: var(--white);
         border: none;
         border-radius: var(--radius-sm);
         font-family: inherit;
-        font-size: 16px;
+        font-size: 14px;
         font-weight: 600;
         cursor: pointer;
         transition: all 0.3s ease;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 10px;
+        gap: 8px;
+        margin-top: 18px;
     }
     
     .auth-submit-btn:hover {
         background: #c47862;
         transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(211, 137, 114, 0.3);
+        box-shadow: 0 6px 16px rgba(211, 137, 114, 0.3);
     }
     
     .auth-form-content {
@@ -184,23 +165,33 @@
         }
     }
     
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+    
+    .form-row .auth-input-group {
+        margin-bottom: 14px;
+    }
+    
     .visual-content {
         color: var(--white);
         text-align: center;
-        padding: 40px;
-        max-width: 500px;
+        padding: 30px;
+        max-width: 450px;
     }
     
     .visual-content h2 {
-        font-size: 36px;
-        margin-bottom: 20px;
+        font-size: 28px;
+        margin-bottom: 15px;
         animation: floatText 3s ease-in-out infinite;
     }
     
     .visual-content p {
-        font-size: 18px;
+        font-size: 15px;
         opacity: 0.9;
-        margin-bottom: 40px;
+        margin-bottom: 30px;
     }
     
     @keyframes floatText {
@@ -211,19 +202,19 @@
     .health-icons {
         display: flex;
         justify-content: center;
-        gap: 30px;
-        margin-bottom: 40px;
+        gap: 20px;
+        margin-bottom: 30px;
     }
     
     .health-icon {
-        width: 80px;
-        height: 80px;
+        width: 60px;
+        height: 60px;
         background: rgba(255, 255, 255, 0.2);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 36px;
+        font-size: 26px;
         animation: iconPulse 2s ease-in-out infinite;
         backdrop-filter: blur(10px);
     }
@@ -255,32 +246,32 @@
     }
     
     .shape:nth-child(1) {
-        width: 200px;
-        height: 200px;
+        width: 150px;
+        height: 150px;
         top: 10%;
-        left: -50px;
+        left: -40px;
         animation-delay: 0s;
     }
     
     .shape:nth-child(2) {
-        width: 150px;
-        height: 150px;
+        width: 120px;
+        height: 120px;
         top: 60%;
-        right: -30px;
+        right: -20px;
         animation-delay: 2s;
     }
     
     .shape:nth-child(3) {
-        width: 100px;
-        height: 100px;
+        width: 80px;
+        height: 80px;
         bottom: 10%;
         left: 20%;
         animation-delay: 4s;
     }
     
     .shape:nth-child(4) {
-        width: 80px;
-        height: 80px;
+        width: 60px;
+        height: 60px;
         top: 20%;
         right: 20%;
         animation-delay: 1s;
@@ -296,8 +287,8 @@
     .heartbeat-line {
         position: relative;
         width: 100%;
-        height: 100px;
-        margin: 20px 0;
+        height: 80px;
+        margin: 15px 0;
     }
     
     .heartbeat-line svg {
@@ -324,14 +315,14 @@
     .stats-preview {
         display: flex;
         justify-content: center;
-        gap: 20px;
+        gap: 15px;
         flex-wrap: wrap;
     }
     
     .stat-preview-item {
         background: rgba(255, 255, 255, 0.15);
         backdrop-filter: blur(10px);
-        padding: 20px 30px;
+        padding: 15px 20px;
         border-radius: var(--radius);
         text-align: center;
         animation: statFloat 4s ease-in-out infinite;
@@ -351,13 +342,13 @@
     }
     
     .stat-preview-item .number {
-        font-size: 28px;
+        font-size: 22px;
         font-weight: 700;
         display: block;
     }
     
     .stat-preview-item .label {
-        font-size: 13px;
+        font-size: 11px;
         opacity: 0.8;
     }
     
@@ -385,15 +376,15 @@
     
     .feature-list {
         text-align: left;
-        margin: 30px 0;
+        margin: 20px 0;
     }
     
     .feature-item {
         display: flex;
         align-items: center;
-        gap: 15px;
-        margin-bottom: 15px;
-        padding: 12px 20px;
+        gap: 12px;
+        margin-bottom: 10px;
+        padding: 10px 15px;
         background: rgba(255, 255, 255, 0.1);
         border-radius: var(--radius-sm);
         animation: slideInRight 0.5s ease backwards;
@@ -416,9 +407,9 @@
     }
     
     .feature-item i {
-        font-size: 24px;
-        width: 40px;
-        height: 40px;
+        font-size: 18px;
+        width: 32px;
+        height: 32px;
         background: rgba(255, 255, 255, 0.2);
         border-radius: 50%;
         display: flex;
@@ -427,7 +418,7 @@
     }
     
     .feature-item span {
-        font-size: 15px;
+        font-size: 13px;
     }
     
     @media (max-width: 900px) {
@@ -436,12 +427,12 @@
         }
         
         .auth-panel {
-            padding: 30px 20px;
+            padding: 20px 15px;
         }
         
         .visual-panel {
-            padding: 40px 20px;
-            min-height: 300px;
+            padding: 30px 15px;
+            min-height: 250px;
         }
         
         .auth-wrapper.register-mode .form-panel,
@@ -450,21 +441,25 @@
         }
         
         .visual-content h2 {
-            font-size: 28px;
+            font-size: 24px;
         }
         
         .health-icons {
-            gap: 20px;
+            gap: 15px;
         }
         
         .health-icon {
-            width: 60px;
-            height: 60px;
-            font-size: 28px;
+            width: 50px;
+            height: 50px;
+            font-size: 22px;
         }
         
         .feature-list {
             display: none;
+        }
+        
+        .form-row {
+            grid-template-columns: 1fr;
         }
     }
 </style>
@@ -484,11 +479,6 @@
     <div class="auth-wrapper" id="authWrapper">
         <div class="auth-panel form-panel">
             <div class="auth-form-container">
-                <div class="auth-form-header">
-                    <h1><i class="fas fa-heartbeat"></i> VitalTrack</h1>
-                    <p id="formSubtitle">Welcome back! Please login to continue.</p>
-                </div>
-                
                 <div class="auth-toggle-container">
                     <button class="auth-toggle-btn active" id="loginToggle" onclick="showLogin()">Login</button>
                     <button class="auth-toggle-btn" id="registerToggle" onclick="showRegister()">Register</button>
@@ -528,28 +518,24 @@
                         </label>
                         <input type="email" id="reg-email" name="email" required placeholder="Enter your email">
                     </div>
-                    <div class="auth-input-group">
-                        <label for="reg-gender">
-                            <i class="fas fa-venus-mars"></i> Gender
-                        </label>
-                        <select id="reg-gender" name="gender" required>
-                            <option value="">Select Gender</option>
-                            <option value="male">Male</option>
-                            <option value="female">Female</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
-                    <div class="auth-input-group">
-                        <label for="reg-password">
-                            <i class="fas fa-lock"></i> Password
-                        </label>
-                        <input type="password" id="reg-password" name="password" required placeholder="Create a password">
-                    </div>
-                    <div class="auth-input-group">
-                        <label for="reg-confirm">
-                            <i class="fas fa-lock"></i> Confirm Password
-                        </label>
-                        <input type="password" id="reg-confirm" name="confirm_password" required placeholder="Confirm your password">
+                    <div class="form-row">
+                        <div class="auth-input-group">
+                            <label for="reg-password">
+                                <i class="fas fa-lock"></i> Password
+                            </label>
+                            <input type="password" id="reg-password" name="password" required placeholder="Create password">
+                        </div>
+                        <div class="auth-input-group">
+                            <label for="reg-gender">
+                                <i class="fas fa-venus-mars"></i> Gender
+                            </label>
+                            <select id="reg-gender" name="gender" required>
+                                <option value="">Select</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
                     </div>
                     <button type="submit" class="auth-submit-btn">
                         <i class="fas fa-user-plus"></i> Create Account
@@ -653,7 +639,6 @@
         document.getElementById('authWrapper').classList.remove('register-mode');
         document.getElementById('loginVisual').classList.add('active');
         document.getElementById('registerVisual').classList.remove('active');
-        document.getElementById('formSubtitle').textContent = 'Welcome back! Please login to continue.';
     }
     
     function showRegister() {
@@ -665,7 +650,6 @@
         document.getElementById('authWrapper').classList.add('register-mode');
         document.getElementById('registerVisual').classList.add('active');
         document.getElementById('loginVisual').classList.remove('active');
-        document.getElementById('formSubtitle').textContent = 'Create an account to get started.';
     }
     
     const urlParams = new URLSearchParams(window.location.search);
