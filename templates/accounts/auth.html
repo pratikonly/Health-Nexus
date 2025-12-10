@@ -3,6 +3,473 @@
 
 {% block title %}Login / Register{% endblock %}
 
+{% block extra_css %}
+<style>
+    .auth-page {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .auth-wrapper {
+        flex: 1;
+        display: flex;
+        margin-top: 70px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .auth-panel {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px;
+        transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+    
+    .form-panel {
+        background: var(--white);
+        z-index: 2;
+    }
+    
+    .visual-panel {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+    }
+    
+    .auth-form-container {
+        width: 100%;
+        max-width: 400px;
+    }
+    
+    .auth-form-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    
+    .auth-form-header h1 {
+        font-size: 32px;
+        color: var(--primary);
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+    }
+    
+    .auth-form-header p {
+        color: var(--grey);
+        font-size: 16px;
+    }
+    
+    .auth-toggle-container {
+        display: flex;
+        position: relative;
+        background: var(--light);
+        border-radius: var(--radius-sm);
+        padding: 4px;
+        margin-bottom: 30px;
+    }
+    
+    .auth-toggle-btn {
+        flex: 1;
+        padding: 14px;
+        border: none;
+        background: none;
+        font-family: inherit;
+        font-weight: 600;
+        cursor: pointer;
+        z-index: 1;
+        transition: color 0.3s ease;
+        color: var(--grey);
+        font-size: 15px;
+    }
+    
+    .auth-toggle-btn.active {
+        color: var(--white);
+    }
+    
+    .auth-toggle-slider {
+        position: absolute;
+        top: 4px;
+        left: 0;
+        width: 50%;
+        height: calc(100% - 8px);
+        background: var(--primary);
+        border-radius: 6px;
+        transition: left 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+    
+    .auth-input-group {
+        margin-bottom: 20px;
+        position: relative;
+    }
+    
+    .auth-input-group label {
+        display: block;
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 8px;
+        color: var(--dark);
+    }
+    
+    .auth-input-group label i {
+        margin-right: 8px;
+        color: var(--primary);
+    }
+    
+    .auth-input-group input,
+    .auth-input-group select {
+        width: 100%;
+        padding: 14px 16px;
+        border: 2px solid #e2e8f0;
+        border-radius: var(--radius-sm);
+        font-family: inherit;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        background: var(--white);
+    }
+    
+    .auth-input-group input:focus,
+    .auth-input-group select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(211, 137, 114, 0.15);
+    }
+    
+    .auth-submit-btn {
+        width: 100%;
+        padding: 16px;
+        background: var(--primary);
+        color: var(--white);
+        border: none;
+        border-radius: var(--radius-sm);
+        font-family: inherit;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+    
+    .auth-submit-btn:hover {
+        background: #c47862;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(211, 137, 114, 0.3);
+    }
+    
+    .auth-form-content {
+        display: none;
+    }
+    
+    .auth-form-content.active {
+        display: block;
+        animation: formSlideIn 0.5s ease;
+    }
+    
+    @keyframes formSlideIn {
+        from { 
+            opacity: 0; 
+            transform: translateX(-20px); 
+        }
+        to { 
+            opacity: 1; 
+            transform: translateX(0); 
+        }
+    }
+    
+    .visual-content {
+        color: var(--white);
+        text-align: center;
+        padding: 40px;
+        max-width: 500px;
+    }
+    
+    .visual-content h2 {
+        font-size: 36px;
+        margin-bottom: 20px;
+        animation: floatText 3s ease-in-out infinite;
+    }
+    
+    .visual-content p {
+        font-size: 18px;
+        opacity: 0.9;
+        margin-bottom: 40px;
+    }
+    
+    @keyframes floatText {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    .health-icons {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        margin-bottom: 40px;
+    }
+    
+    .health-icon {
+        width: 80px;
+        height: 80px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 36px;
+        animation: iconPulse 2s ease-in-out infinite;
+        backdrop-filter: blur(10px);
+    }
+    
+    .health-icon:nth-child(1) { animation-delay: 0s; }
+    .health-icon:nth-child(2) { animation-delay: 0.3s; }
+    .health-icon:nth-child(3) { animation-delay: 0.6s; }
+    
+    @keyframes iconPulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+    
+    .floating-shapes {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        overflow: hidden;
+        pointer-events: none;
+    }
+    
+    .shape {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        animation: float 20s infinite ease-in-out;
+    }
+    
+    .shape:nth-child(1) {
+        width: 200px;
+        height: 200px;
+        top: 10%;
+        left: -50px;
+        animation-delay: 0s;
+    }
+    
+    .shape:nth-child(2) {
+        width: 150px;
+        height: 150px;
+        top: 60%;
+        right: -30px;
+        animation-delay: 2s;
+    }
+    
+    .shape:nth-child(3) {
+        width: 100px;
+        height: 100px;
+        bottom: 10%;
+        left: 20%;
+        animation-delay: 4s;
+    }
+    
+    .shape:nth-child(4) {
+        width: 80px;
+        height: 80px;
+        top: 20%;
+        right: 20%;
+        animation-delay: 1s;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        25% { transform: translateY(-30px) rotate(5deg); }
+        50% { transform: translateY(0) rotate(0deg); }
+        75% { transform: translateY(30px) rotate(-5deg); }
+    }
+    
+    .heartbeat-line {
+        position: relative;
+        width: 100%;
+        height: 100px;
+        margin: 20px 0;
+    }
+    
+    .heartbeat-line svg {
+        width: 100%;
+        height: 100%;
+    }
+    
+    .heartbeat-path {
+        fill: none;
+        stroke: rgba(255, 255, 255, 0.8);
+        stroke-width: 3;
+        stroke-linecap: round;
+        stroke-dasharray: 1000;
+        stroke-dashoffset: 1000;
+        animation: heartbeatDraw 3s ease-in-out infinite;
+    }
+    
+    @keyframes heartbeatDraw {
+        0% { stroke-dashoffset: 1000; }
+        50% { stroke-dashoffset: 0; }
+        100% { stroke-dashoffset: -1000; }
+    }
+    
+    .stats-preview {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+    
+    .stat-preview-item {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        padding: 20px 30px;
+        border-radius: var(--radius);
+        text-align: center;
+        animation: statFloat 4s ease-in-out infinite;
+    }
+    
+    .stat-preview-item:nth-child(2) {
+        animation-delay: 0.5s;
+    }
+    
+    .stat-preview-item:nth-child(3) {
+        animation-delay: 1s;
+    }
+    
+    @keyframes statFloat {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-15px); }
+    }
+    
+    .stat-preview-item .number {
+        font-size: 28px;
+        font-weight: 700;
+        display: block;
+    }
+    
+    .stat-preview-item .label {
+        font-size: 13px;
+        opacity: 0.8;
+    }
+    
+    .login-visual, .register-visual {
+        display: none;
+    }
+    
+    .login-visual.active, .register-visual.active {
+        display: block;
+        animation: visualFade 0.6s ease;
+    }
+    
+    @keyframes visualFade {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+    }
+    
+    .auth-wrapper.register-mode .form-panel {
+        order: 2;
+    }
+    
+    .auth-wrapper.register-mode .visual-panel {
+        order: 1;
+    }
+    
+    .feature-list {
+        text-align: left;
+        margin: 30px 0;
+    }
+    
+    .feature-item {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 15px;
+        padding: 12px 20px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: var(--radius-sm);
+        animation: slideInRight 0.5s ease backwards;
+    }
+    
+    .feature-item:nth-child(1) { animation-delay: 0.1s; }
+    .feature-item:nth-child(2) { animation-delay: 0.2s; }
+    .feature-item:nth-child(3) { animation-delay: 0.3s; }
+    .feature-item:nth-child(4) { animation-delay: 0.4s; }
+    
+    @keyframes slideInRight {
+        from { 
+            opacity: 0; 
+            transform: translateX(30px); 
+        }
+        to { 
+            opacity: 1; 
+            transform: translateX(0); 
+        }
+    }
+    
+    .feature-item i {
+        font-size: 24px;
+        width: 40px;
+        height: 40px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .feature-item span {
+        font-size: 15px;
+    }
+    
+    @media (max-width: 900px) {
+        .auth-wrapper {
+            flex-direction: column;
+        }
+        
+        .auth-panel {
+            padding: 30px 20px;
+        }
+        
+        .visual-panel {
+            padding: 40px 20px;
+            min-height: 300px;
+        }
+        
+        .auth-wrapper.register-mode .form-panel,
+        .auth-wrapper.register-mode .visual-panel {
+            order: unset;
+        }
+        
+        .visual-content h2 {
+            font-size: 28px;
+        }
+        
+        .health-icons {
+            gap: 20px;
+        }
+        
+        .health-icon {
+            width: 60px;
+            height: 60px;
+            font-size: 28px;
+        }
+        
+        .feature-list {
+            display: none;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <nav class="navbar landing-navbar">
     <div class="navbar-container">
@@ -13,84 +480,168 @@
     </div>
 </nav>
 
-<div class="auth-container">
-    <div class="auth-box">
-        <div class="auth-header">
-            <h1><i class="fas fa-heartbeat"></i> VitalTrack</h1>
-            <p>Your Health Journey Starts Here</p>
+<div class="auth-page">
+    <div class="auth-wrapper" id="authWrapper">
+        <div class="auth-panel form-panel">
+            <div class="auth-form-container">
+                <div class="auth-form-header">
+                    <h1><i class="fas fa-heartbeat"></i> VitalTrack</h1>
+                    <p id="formSubtitle">Welcome back! Please login to continue.</p>
+                </div>
+                
+                <div class="auth-toggle-container">
+                    <button class="auth-toggle-btn active" id="loginToggle" onclick="showLogin()">Login</button>
+                    <button class="auth-toggle-btn" id="registerToggle" onclick="showRegister()">Register</button>
+                    <div class="auth-toggle-slider" id="toggleSlider"></div>
+                </div>
+                
+                <form class="auth-form-content active" id="loginForm" action="{% url 'login' %}" method="POST">
+                    {% csrf_token %}
+                    <div class="auth-input-group">
+                        <label for="login-username">
+                            <i class="fas fa-user"></i> Username
+                        </label>
+                        <input type="text" id="login-username" name="username" required placeholder="Enter your username">
+                    </div>
+                    <div class="auth-input-group">
+                        <label for="login-password">
+                            <i class="fas fa-lock"></i> Password
+                        </label>
+                        <input type="password" id="login-password" name="password" required placeholder="Enter your password">
+                    </div>
+                    <button type="submit" class="auth-submit-btn">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </button>
+                </form>
+                
+                <form class="auth-form-content" id="registerForm" action="{% url 'register' %}" method="POST">
+                    {% csrf_token %}
+                    <div class="auth-input-group">
+                        <label for="reg-username">
+                            <i class="fas fa-user"></i> Username
+                        </label>
+                        <input type="text" id="reg-username" name="username" required placeholder="Choose a username">
+                    </div>
+                    <div class="auth-input-group">
+                        <label for="reg-email">
+                            <i class="fas fa-envelope"></i> Email
+                        </label>
+                        <input type="email" id="reg-email" name="email" required placeholder="Enter your email">
+                    </div>
+                    <div class="auth-input-group">
+                        <label for="reg-gender">
+                            <i class="fas fa-venus-mars"></i> Gender
+                        </label>
+                        <select id="reg-gender" name="gender" required>
+                            <option value="">Select Gender</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="auth-input-group">
+                        <label for="reg-password">
+                            <i class="fas fa-lock"></i> Password
+                        </label>
+                        <input type="password" id="reg-password" name="password" required placeholder="Create a password">
+                    </div>
+                    <div class="auth-input-group">
+                        <label for="reg-confirm">
+                            <i class="fas fa-lock"></i> Confirm Password
+                        </label>
+                        <input type="password" id="reg-confirm" name="confirm_password" required placeholder="Confirm your password">
+                    </div>
+                    <button type="submit" class="auth-submit-btn">
+                        <i class="fas fa-user-plus"></i> Create Account
+                    </button>
+                </form>
+            </div>
         </div>
         
-        <div class="auth-toggle">
-            <button class="toggle-btn active" id="loginToggle" onclick="showLogin()">Login</button>
-            <button class="toggle-btn" id="registerToggle" onclick="showRegister()">Register</button>
-            <div class="toggle-slider" id="toggleSlider"></div>
-        </div>
-        
-        <div class="auth-forms">
-            <form class="auth-form active" id="loginForm" action="{% url 'login' %}" method="POST">
-                {% csrf_token %}
-                <div class="form-group">
-                    <label for="login-username">
-                        <i class="fas fa-user"></i> Username
-                    </label>
-                    <input type="text" id="login-username" name="username" required placeholder="Enter your username">
-                </div>
-                <div class="form-group">
-                    <label for="login-password">
-                        <i class="fas fa-lock"></i> Password
-                    </label>
-                    <input type="password" id="login-password" name="password" required placeholder="Enter your password">
-                </div>
-                <button type="submit" class="btn btn-primary btn-block">
-                    <i class="fas fa-sign-in-alt"></i> Login
-                </button>
-            </form>
+        <div class="auth-panel visual-panel">
+            <div class="floating-shapes">
+                <div class="shape"></div>
+                <div class="shape"></div>
+                <div class="shape"></div>
+                <div class="shape"></div>
+            </div>
             
-            <form class="auth-form" id="registerForm" action="{% url 'register' %}" method="POST">
-                {% csrf_token %}
-                <div class="form-group">
-                    <label for="reg-username">
-                        <i class="fas fa-user"></i> Username
-                    </label>
-                    <input type="text" id="reg-username" name="username" required placeholder="Choose a username">
+            <div class="visual-content login-visual active" id="loginVisual">
+                <h2>Track Your Health Journey</h2>
+                <p>Monitor your nutrition, track your progress, and achieve your wellness goals with VitalTrack.</p>
+                
+                <div class="health-icons">
+                    <div class="health-icon">
+                        <i class="fas fa-heartbeat"></i>
+                    </div>
+                    <div class="health-icon">
+                        <i class="fas fa-apple-alt"></i>
+                    </div>
+                    <div class="health-icon">
+                        <i class="fas fa-dumbbell"></i>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="reg-email">
-                        <i class="fas fa-envelope"></i> Email
-                    </label>
-                    <input type="email" id="reg-email" name="email" required placeholder="Enter your email">
+                
+                <div class="heartbeat-line">
+                    <svg viewBox="0 0 400 100" preserveAspectRatio="none">
+                        <path class="heartbeat-path" d="M0,50 L80,50 L100,20 L120,80 L140,50 L160,50 L180,30 L200,70 L220,50 L280,50 L300,20 L320,80 L340,50 L400,50" />
+                    </svg>
                 </div>
-                <div class="form-group">
-                    <label for="reg-gender">
-                        <i class="fas fa-venus-mars"></i> Gender
-                    </label>
-                    <select id="reg-gender" name="gender" required>
-                        <option value="">Select Gender</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                        <option value="other">Other</option>
-                    </select>
+                
+                <div class="stats-preview">
+                    <div class="stat-preview-item">
+                        <span class="number">2000+</span>
+                        <span class="label">Calories Tracked</span>
+                    </div>
+                    <div class="stat-preview-item">
+                        <span class="number">30+</span>
+                        <span class="label">Health Tips</span>
+                    </div>
+                    <div class="stat-preview-item">
+                        <span class="number">AI</span>
+                        <span class="label">Food Scanner</span>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="reg-password">
-                        <i class="fas fa-lock"></i> Password
-                    </label>
-                    <input type="password" id="reg-password" name="password" required placeholder="Create a password">
+            </div>
+            
+            <div class="visual-content register-visual" id="registerVisual">
+                <h2>Start Your Wellness Journey</h2>
+                <p>Join thousands of users who have transformed their health with VitalTrack.</p>
+                
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <i class="fas fa-camera"></i>
+                        <span>AI-Powered Food Analysis</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Track Your Progress Daily</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-utensils"></i>
+                        <span>Personalized Diet Plans</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-trophy"></i>
+                        <span>Achieve Your Health Goals</span>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="reg-confirm">
-                        <i class="fas fa-lock"></i> Confirm Password
-                    </label>
-                    <input type="password" id="reg-confirm" name="confirm_password" required placeholder="Confirm your password">
+                
+                <div class="health-icons">
+                    <div class="health-icon">
+                        <i class="fas fa-leaf"></i>
+                    </div>
+                    <div class="health-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <div class="health-icon">
+                        <i class="fas fa-running"></i>
+                    </div>
                 </div>
-                <button type="submit" class="btn btn-primary btn-block">
-                    <i class="fas fa-user-plus"></i> Create Account
-                </button>
-            </form>
+            </div>
         </div>
     </div>
 </div>
-
 
 <script>
     function showLogin() {
@@ -99,6 +650,10 @@
         document.getElementById('loginToggle').classList.add('active');
         document.getElementById('registerToggle').classList.remove('active');
         document.getElementById('toggleSlider').style.left = '0';
+        document.getElementById('authWrapper').classList.remove('register-mode');
+        document.getElementById('loginVisual').classList.add('active');
+        document.getElementById('registerVisual').classList.remove('active');
+        document.getElementById('formSubtitle').textContent = 'Welcome back! Please login to continue.';
     }
     
     function showRegister() {
@@ -107,6 +662,10 @@
         document.getElementById('registerToggle').classList.add('active');
         document.getElementById('loginToggle').classList.remove('active');
         document.getElementById('toggleSlider').style.left = '50%';
+        document.getElementById('authWrapper').classList.add('register-mode');
+        document.getElementById('registerVisual').classList.add('active');
+        document.getElementById('loginVisual').classList.remove('active');
+        document.getElementById('formSubtitle').textContent = 'Create an account to get started.';
     }
     
     const urlParams = new URLSearchParams(window.location.search);
