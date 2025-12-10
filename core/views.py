@@ -348,6 +348,7 @@ def settings_view(request):
         profile.target_weight = float(request.POST.get('target_weight', 0)) or None
         profile.daily_calorie_goal = int(request.POST.get('daily_calorie_goal', 2000))
         profile.dietary_preference = request.POST.get('dietary_preference', 'none')
+        profile.gender = request.POST.get('gender', '')
         
         dob = request.POST.get('date_of_birth')
         if dob:

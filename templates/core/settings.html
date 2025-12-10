@@ -32,10 +32,28 @@
                 <input type="email" name="email" id="email" value="{{ user.email }}" placeholder="Enter email">
             </div>
             
-            <div class="form-group">
-                <label for="date_of_birth">Date of Birth</label>
-                <input type="date" name="date_of_birth" id="date_of_birth" value="{{ profile.date_of_birth|date:'Y-m-d' }}">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="gender">Gender</label>
+                    <select name="gender" id="gender">
+                        <option value="">Select Gender</option>
+                        <option value="male" {% if profile.gender == 'male' %}selected{% endif %}>Male</option>
+                        <option value="female" {% if profile.gender == 'female' %}selected{% endif %}>Female</option>
+                        <option value="other" {% if profile.gender == 'other' %}selected{% endif %}>Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="date_of_birth">Date of Birth</label>
+                    <input type="date" name="date_of_birth" id="date_of_birth" value="{{ profile.date_of_birth|date:'Y-m-d' }}">
+                </div>
             </div>
+            
+            {% if profile.get_age %}
+            <div class="bmi-info">
+                <i class="fas fa-birthday-cake"></i>
+                <span>Your age: <strong>{{ profile.get_age }} years</strong></span>
+            </div>
+            {% endif %}
         </div>
         
         <div class="settings-section">

@@ -3,6 +3,7 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.models import User
 from django.contrib import messages
 from .models import UserProfile
+import random
 
 def auth_view(request):
     if request.user.is_authenticated:
@@ -28,6 +29,7 @@ def register_view(request):
         email = request.POST.get('email')
         password = request.POST.get('password')
         confirm_password = request.POST.get('confirm_password')
+        gender = request.POST.get('gender')
         
         if password != confirm_password:
             messages.error(request, 'Passwords do not match.')
@@ -42,7 +44,20 @@ def register_view(request):
             return redirect('auth')
         
         user = User.objects.create_user(username=username, email=email, password=password)
-        UserProfile.objects.create(user=user)
+        
+        # Assign random avatar based on gender
+        male_avatars = ['👨', '🧔', '👨‍💼', '👨‍🔬', '👨‍⚕️', '👨‍🎓', '🧑', '👦']
+        female_avatars = ['👩', '👩‍💼', '👩‍🔬', '👩‍⚕️', '👩‍🎓', '👧', '🧑‍🦰', '👱‍♀️']
+        other_avatars = ['🧑', '😊', '🙂', '😎', '🤓', '🥳']
+        
+        if gender == 'male':
+            avatar_emoji = random.choice(male_avatars)
+        elif gender == 'female':
+            avatar_emoji = random.choice(female_avatars)
+        else:
+            avatar_emoji = random.choice(other_avatars)
+        
+        UserProfile.objects.create(user=user, gender=gender, avatar_emoji=avatar_emoji)
         login(request, user)
         messages.success(request, f'Welcome to VitalTrack, {user.username}! Your journey to healthy living starts now.')
         return redirect('dashboard')

@@ -23,7 +23,11 @@
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="user-avatar">
-                <i class="fas fa-user"></i>
+                {% if user.profile.avatar_emoji %}
+                    <span style="font-size: 32px;">{{ user.profile.avatar_emoji }}</span>
+                {% else %}
+                    <i class="fas fa-user"></i>
+                {% endif %}
             </div>
             <span class="user-name">{{ user.username }}</span>
         </div>
