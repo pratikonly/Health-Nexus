@@ -43,8 +43,8 @@ class UserProfile(models.Model):
     
     def get_avatar_url(self):
         if self.gender == 'male':
-            return 'https://avatar.iran.liara.run/public/boy'
+            return 'https://pratik-image-api.vercel.app/male/'
         elif self.gender == 'female':
-            return 'https://avatar.iran.liara.run/public/girl'
+            return 'https://pratik-image-api.vercel.app/female'
         else:
-            return None
+            return 'https://pratik-image-api.vercel.app/male/'

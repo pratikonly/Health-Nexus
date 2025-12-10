@@ -14,13 +14,18 @@ def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
+        
+        if not User.objects.filter(username=username).exists():
+            messages.error(request, 'Account does not exist. Please create one!')
+            return redirect('auth')
+        
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
             messages.success(request, f'Welcome back, {user.username}!')
             return redirect('dashboard')
         else:
-            messages.error(request, 'Invalid username or password.')
+            messages.error(request, 'Invalid password. Please try again.')
     return redirect('auth')
 
 def register_view(request):
