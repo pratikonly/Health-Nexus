@@ -26,7 +26,7 @@ def login_view(request):
                 messages.success(request, f'Welcome back, {user.first_name or user.username}!')
                 return redirect('dashboard')
             else:
-                messages.error(request, 'Invalid password. Please try again.')
+                messages.error(request, 'Invalid password. Please try again.', extra_tags='invalid_password')
         except User.DoesNotExist:
             messages.error(request, 'Email not found.', extra_tags='email_not_exist')
     

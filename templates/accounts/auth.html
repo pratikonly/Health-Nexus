@@ -551,13 +551,15 @@
                     {% csrf_token %}
                     {% if messages %}
                     {% for message in messages %}
-                    <div class="inline-notification {% if message.tags %}{{ message.tags }}{% endif %} show" id="loginNotification">
+                    {% if 'email_not_exist' in message.tags or 'invalid_password' in message.tags %}
+                    <div class="inline-notification error show" id="loginNotification">
                         <i class="fas fa-exclamation-circle"></i>
                         <span id="loginNotificationText">{{ message }}</span>
                         {% if 'email_not_exist' in message.tags %}
                         <a href="javascript:void(0)" onclick="showRegister()" class="create-account-link">Create one</a>
                         {% endif %}
                     </div>
+                    {% endif %}
                     {% endfor %}
                     {% else %}
                     <div class="inline-notification error" id="loginNotification">
