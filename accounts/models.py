@@ -40,3 +40,11 @@ class UserProfile(models.Model):
             today = date.today()
             return today.year - self.date_of_birth.year - ((today.month, today.day) < (self.date_of_birth.month, self.date_of_birth.day))
         return None
+    
+    def get_avatar_url(self):
+        if self.gender == 'male':
+            return 'https://avatar.iran.liara.run/public/boy'
+        elif self.gender == 'female':
+            return 'https://avatar.iran.liara.run/public/girl'
+        else:
+            return None

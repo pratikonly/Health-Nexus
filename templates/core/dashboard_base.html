@@ -23,7 +23,9 @@
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="user-avatar">
-                {% if user.profile.avatar_emoji %}
+                {% if user.profile.get_avatar_url %}
+                    <img src="{{ user.profile.get_avatar_url }}" alt="{{ user.username }}" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover;">
+                {% elif user.profile.avatar_emoji %}
                     <span style="font-size: 32px;">{{ user.profile.avatar_emoji }}</span>
                 {% else %}
                     <i class="fas fa-user"></i>

@@ -17,7 +17,7 @@
                 <div class="greeting-emoji-lg">
                 </div>
                 <div class="greeting-text">
-                    <h1 class="greeting-title">Welcome Back, {{ user.first_name|default:user.username }}!</h1>
+                    <h1 class="greeting-title">Welcome Back, <span class="username-highlight">{{ user.first_name|default:user.username }}</span>!</h1>
                     <p class="greeting-subtitle">Ready to continue your amazing health journey today?</p>
                 </div>
             </div>
