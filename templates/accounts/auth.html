@@ -120,6 +120,27 @@
         box-shadow: 0 0 0 3px rgba(211, 137, 114, 0.15);
     }
     
+    .auth-input-group input.error {
+        border-color: var(--danger);
+    }
+    
+    .auth-input-group .error-message {
+        color: var(--danger);
+        font-size: 12px;
+        margin-top: 5px;
+        display: none;
+    }
+    
+    .auth-input-group .error-message.show {
+        display: block;
+        animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-5px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
     .auth-submit-btn {
         width: 100%;
         padding: 12px;
@@ -143,6 +164,13 @@
         background: #c47862;
         transform: translateY(-2px);
         box-shadow: 0 6px 16px rgba(211, 137, 114, 0.3);
+    }
+    
+    .auth-submit-btn:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
     }
     
     .auth-form-content {
@@ -421,6 +449,27 @@
         font-size: 13px;
     }
     
+    .inline-notification {
+        padding: 10px 15px;
+        border-radius: var(--radius-sm);
+        margin-bottom: 15px;
+        font-size: 13px;
+        display: none;
+        animation: fadeIn 0.3s ease;
+    }
+    
+    .inline-notification.error {
+        background: rgba(229, 62, 62, 0.1);
+        color: var(--danger);
+        border: 1px solid rgba(229, 62, 62, 0.3);
+    }
+    
+    .inline-notification.show {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
     @media (max-width: 900px) {
         .auth-wrapper {
             flex-direction: column;
@@ -487,11 +536,15 @@
                 
                 <form class="auth-form-content active" id="loginForm" action="{% url 'login' %}" method="POST">
                     {% csrf_token %}
+                    <div class="inline-notification error" id="loginNotification">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span id="loginNotificationText"></span>
+                    </div>
                     <div class="auth-input-group">
-                        <label for="login-username">
-                            <i class="fas fa-user"></i> Username
+                        <label for="login-email">
+                            <i class="fas fa-envelope"></i> Email
                         </label>
-                        <input type="text" id="login-username" name="username" required placeholder="Enter your username">
+                        <input type="email" id="login-email" name="email" required placeholder="Enter your email">
                     </div>
                     <div class="auth-input-group">
                         <label for="login-password">
@@ -506,17 +559,22 @@
                 
                 <form class="auth-form-content" id="registerForm" action="{% url 'register' %}" method="POST">
                     {% csrf_token %}
+                    <div class="inline-notification error" id="registerNotification">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span id="registerNotificationText"></span>
+                    </div>
                     <div class="auth-input-group">
-                        <label for="reg-username">
-                            <i class="fas fa-user"></i> Username
+                        <label for="reg-name">
+                            <i class="fas fa-user"></i> Name
                         </label>
-                        <input type="text" id="reg-username" name="username" required placeholder="Choose a username">
+                        <input type="text" id="reg-name" name="name" required placeholder="Enter your name">
                     </div>
                     <div class="auth-input-group">
                         <label for="reg-email">
                             <i class="fas fa-envelope"></i> Email
                         </label>
                         <input type="email" id="reg-email" name="email" required placeholder="Enter your email">
+                        <div class="error-message" id="emailError">Account already exists with this email</div>
                     </div>
                     <div class="form-row">
                         <div class="auth-input-group">
@@ -537,7 +595,7 @@
                             </select>
                         </div>
                     </div>
-                    <button type="submit" class="auth-submit-btn">
+                    <button type="submit" class="auth-submit-btn" id="registerBtn">
                         <i class="fas fa-user-plus"></i> Create Account
                     </button>
                 </form>
@@ -639,6 +697,8 @@
         document.getElementById('authWrapper').classList.remove('register-mode');
         document.getElementById('loginVisual').classList.add('active');
         document.getElementById('registerVisual').classList.remove('active');
+        document.getElementById('loginNotification').classList.remove('show');
+        document.getElementById('registerNotification').classList.remove('show');
     }
     
     function showRegister() {
@@ -650,11 +710,64 @@
         document.getElementById('authWrapper').classList.add('register-mode');
         document.getElementById('registerVisual').classList.add('active');
         document.getElementById('loginVisual').classList.remove('active');
+        document.getElementById('loginNotification').classList.remove('show');
+        document.getElementById('registerNotification').classList.remove('show');
     }
     
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('mode') === 'register') {
         showRegister();
     }
+    
+    const regEmailInput = document.getElementById('reg-email');
+    const emailError = document.getElementById('emailError');
+    const registerBtn = document.getElementById('registerBtn');
+    let emailCheckTimeout;
+    
+    regEmailInput.addEventListener('input', function() {
+        clearTimeout(emailCheckTimeout);
+        emailError.classList.remove('show');
+        regEmailInput.classList.remove('error');
+        registerBtn.disabled = false;
+        
+        const email = this.value.trim();
+        if (email && email.includes('@')) {
+            emailCheckTimeout = setTimeout(() => checkEmail(email), 500);
+        }
+    });
+    
+    function checkEmail(email) {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        fetch('{% url "check_email" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrfToken
+            },
+            body: 'email=' + encodeURIComponent(email)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.exists) {
+                emailError.classList.add('show');
+                regEmailInput.classList.add('error');
+                registerBtn.disabled = true;
+            } else {
+                emailError.classList.remove('show');
+                regEmailInput.classList.remove('error');
+                registerBtn.disabled = false;
+            }
+        })
+        .catch(err => console.error('Email check failed:', err));
+    }
+    
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+        const email = regEmailInput.value.trim();
+        if (regEmailInput.classList.contains('error')) {
+            e.preventDefault();
+            return false;
+        }
+    });
 </script>
 {% endblock %}

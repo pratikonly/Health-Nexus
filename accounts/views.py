@@ -2,8 +2,11 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.models import User
 from django.contrib import messages
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 from .models import UserProfile
 import random
+import string
 
 def auth_view(request):
     if request.user.is_authenticated:
@@ -12,57 +15,63 @@ def auth_view(request):
 
 def login_view(request):
     if request.method == 'POST':
-        username = request.POST.get('username')
+        email = request.POST.get('email')
         password = request.POST.get('password')
         
-        if not User.objects.filter(username=username).exists():
-            messages.error(request, 'Account does not exist. Please create one!')
-            return redirect('auth')
-        
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
-            messages.success(request, f'Welcome back, {user.username}!')
-            return redirect('dashboard')
-        else:
-            messages.error(request, 'Invalid password. Please try again.')
+        try:
+            user_obj = User.objects.get(email=email)
+            user = authenticate(request, username=user_obj.username, password=password)
+            if user is not None:
+                login(request, user)
+                messages.success(request, f'Welcome back, {user.first_name or user.username}!')
+                return redirect('dashboard')
+            else:
+                messages.error(request, 'Invalid password. Please try again.')
+        except User.DoesNotExist:
+            messages.error(request, 'Account does not exist with this email. Please create one!')
+    
     return redirect('auth')
 
 def register_view(request):
     if request.method == 'POST':
-        username = request.POST.get('username')
+        name = request.POST.get('name')
         email = request.POST.get('email')
         password = request.POST.get('password')
         gender = request.POST.get('gender')
         
-        if User.objects.filter(username=username).exists():
-            messages.error(request, 'Username already exists.')
+        if User.objects.filter(email=email).exists():
+            messages.error(request, 'Account already exists with this email.')
             return redirect('auth')
         
-        if User.objects.filter(email=email).exists():
-            messages.error(request, 'Email already registered.')
-            return redirect('auth')
+        base_username = name.lower().replace(' ', '_')[:20]
+        username = base_username
+        while User.objects.filter(username=username).exists():
+            suffix = ''.join(random.choices(string.digits, k=4))
+            username = f"{base_username}_{suffix}"
         
         user = User.objects.create_user(username=username, email=email, password=password)
-        
-        # Assign random avatar based on gender
-        male_avatars = ['👨', '🧔', '👨‍💼', '👨‍🔬', '👨‍⚕️', '👨‍🎓', '🧑', '👦']
-        female_avatars = ['👩', '👩‍💼', '👩‍🔬', '👩‍⚕️', '👩‍🎓', '👧', '🧑‍🦰', '👱‍♀️']
-        other_avatars = ['🧑', '😊', '🙂', '😎', '🤓', '🥳']
+        user.first_name = name
+        user.save()
         
         if gender == 'male':
-            avatar_emoji = random.choice(male_avatars)
+            avatar_url = 'https://pratik-image-api.vercel.app/male/'
         elif gender == 'female':
-            avatar_emoji = random.choice(female_avatars)
+            avatar_url = 'https://pratik-image-api.vercel.app/female'
         else:
-            avatar_emoji = random.choice(other_avatars)
+            avatar_url = 'https://pratik-image-api.vercel.app/male/'
         
-        UserProfile.objects.create(user=user, gender=gender, avatar_emoji=avatar_emoji)
+        UserProfile.objects.create(user=user, gender=gender)
         login(request, user)
-        messages.success(request, f'Welcome to VitalTrack, {user.username}! Your journey to healthy living starts now.')
+        messages.success(request, f'Welcome to VitalTrack, {name}! Your journey to healthy living starts now.')
         return redirect('dashboard')
     
     return redirect('auth')
+
+@require_POST
+def check_email_view(request):
+    email = request.POST.get('email', '')
+    exists = User.objects.filter(email=email).exists()
+    return JsonResponse({'exists': exists})
 
 def logout_view(request):
     logout(request)
