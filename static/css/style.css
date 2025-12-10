@@ -1497,6 +1497,273 @@ a {
 .bmi-value {
     display: block;
     font-size: 28px;
+
+
+/* Welcome/Home Page Styles */
+.welcome-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.welcome-header {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    border-radius: var(--radius);
+    padding: 60px 40px;
+    margin-bottom: 40px;
+    box-shadow: var(--shadow-lg);
+}
+
+.welcome-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 50px;
+    align-items: center;
+}
+
+.greeting-section {
+    color: var(--white);
+}
+
+.welcome-title {
+    font-size: 48px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.wave {
+    display: inline-block;
+    animation: wave 2s infinite;
+    transform-origin: 70% 70%;
+    font-size: 52px;
+}
+
+@keyframes wave {
+    0%, 100% { transform: rotate(0deg); }
+    10%, 30% { transform: rotate(14deg); }
+    20% { transform: rotate(-8deg); }
+    40% { transform: rotate(-4deg); }
+    50% { transform: rotate(10deg); }
+}
+
+.greeting-text {
+    font-weight: 700;
+}
+
+.welcome-subtitle {
+    font-size: 20px;
+    opacity: 0.9;
+    margin-bottom: 25px;
+}
+
+.welcome-stats {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.stat-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 10px 18px;
+    border-radius: 25px;
+    font-size: 14px;
+    backdrop-filter: blur(10px);
+}
+
+.stat-badge i {
+    font-size: 18px;
+}
+
+.welcome-image {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.image-card {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 25px;
+    border-radius: var(--radius);
+    text-align: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.image-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.image-card.card-2 {
+    grid-column: span 2;
+}
+
+.image-card .card-icon {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+    color: var(--white);
+    font-size: 30px;
+}
+
+.image-card h3 {
+    font-size: 18px;
+    color: var(--dark);
+}
+
+.quick-access-section {
+    margin-bottom: 40px;
+}
+
+.quick-access-section h2 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 25px;
+    font-size: 24px;
+}
+
+.quick-access-section h2 i {
+    color: var(--primary);
+}
+
+.quick-access-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.access-card {
+    background: var(--white);
+    padding: 30px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    text-align: center;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.access-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary);
+}
+
+.card-icon-large {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    color: var(--white);
+    font-size: 32px;
+}
+
+.card-icon-large.dashboard {
+    background: linear-gradient(135deg, var(--primary), #c47862);
+}
+
+.card-icon-large.ai {
+    background: linear-gradient(135deg, #63b3ed, #4299e1);
+}
+
+.card-icon-large.diet {
+    background: linear-gradient(135deg, var(--secondary), #6b7c74);
+}
+
+.card-icon-large.quiz {
+    background: linear-gradient(135deg, #fc8181, #f56565);
+}
+
+.card-icon-large.progress {
+    background: linear-gradient(135deg, #68d391, #48bb78);
+}
+
+.card-icon-large.settings {
+    background: linear-gradient(135deg, #a0aec0, #718096);
+}
+
+.access-card h3 {
+    font-size: 20px;
+    margin-bottom: 10px;
+    color: var(--dark);
+}
+
+.access-card p {
+    font-size: 14px;
+    color: var(--grey);
+}
+
+.motivation-section {
+    margin-bottom: 40px;
+}
+
+.motivation-card {
+    background: linear-gradient(135deg, rgba(211, 137, 114, 0.1), rgba(137, 157, 149, 0.1));
+    padding: 40px;
+    border-radius: var(--radius);
+    border-left: 5px solid var(--primary);
+    position: relative;
+}
+
+.motivation-card i {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 24px;
+    color: var(--primary);
+    opacity: 0.5;
+}
+
+.motivation-card h3 {
+    font-size: 22px;
+    margin-bottom: 15px;
+    color: var(--primary);
+    margin-left: 40px;
+}
+
+.motivation-card blockquote {
+    font-size: 16px;
+    line-height: 1.8;
+    color: var(--dark);
+    font-style: italic;
+}
+
+@media (max-width: 768px) {
+    .welcome-content {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+    
+    .welcome-title {
+        font-size: 36px;
+    }
+    
+    .welcome-image {
+        grid-template-columns: 1fr;
+    }
+    
+    .image-card.card-2 {
+        grid-column: span 1;
+    }
+    
+    .quick-access-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
     font-weight: 600;
     color: var(--secondary);
 }

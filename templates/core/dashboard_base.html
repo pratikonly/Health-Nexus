@@ -14,7 +14,6 @@
             </a>
         </div>
         <div class="navbar-right">
-            <span class="user-greeting">Hello, {{ user.username }}!</span>
             <a href="{% url 'logout' %}" class="btn btn-outline btn-sm">
                 <i class="fas fa-sign-out-alt"></i> Logout
             </a>
@@ -34,12 +33,16 @@
                 <i class="fas fa-home"></i>
                 <span>Home</span>
             </a>
+            <a href="{% url 'dashboard_home' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard_home' %}active{% endif %}">
+                <i class="fas fa-chart-line"></i>
+                <span>Dashboard</span>
+            </a>
             <a href="{% url 'quiz_list' %}" class="nav-item {% if 'quiz' in request.resolver_match.url_name %}active{% endif %}">
                 <i class="fas fa-question-circle"></i>
                 <span>Quiz</span>
             </a>
             <a href="{% url 'progress' %}" class="nav-item {% if request.resolver_match.url_name == 'progress' %}active{% endif %}">
-                <i class="fas fa-chart-line"></i>
+                <i class="fas fa-chart-bar"></i>
                 <span>Progress</span>
             </a>
             <a href="{% url 'ai_cam' %}" class="nav-item {% if request.resolver_match.url_name == 'ai_cam' %}active{% endif %}">

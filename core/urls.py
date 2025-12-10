@@ -5,6 +5,7 @@ urlpatterns = [
     path('', views.landing, name='landing'),
     path('dashboard/', views.dashboard, name='dashboard'),
     path('home/', views.home, name='home'),
+    path('dashboard-home/', views.dashboard_home, name='dashboard_home'),
     path('quiz/', views.quiz_list, name='quiz_list'),
     path('quiz/<int:quiz_id>/', views.quiz_detail, name='quiz_detail'),
     path('quiz/<int:quiz_id>/submit/', views.quiz_submit, name='quiz_submit'),

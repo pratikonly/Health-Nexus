@@ -23,6 +23,11 @@ def dashboard(request):
 
 @login_required
 def home(request):
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+    return render(request, 'core/home.html', {'profile': profile})
+
+@login_required
+def dashboard_home(request):
     today = datetime.now().date()
     
     profile, created = UserProfile.objects.get_or_create(user=request.user)
@@ -58,7 +63,7 @@ def home(request):
         'quiz_count': quiz_count,
         'meals_logged': meals_logged,
     }
-    return render(request, 'core/home.html', context)
+    return render(request, 'core/dashboard_home.html', context)
 
 @login_required
 def quiz_list(request):
