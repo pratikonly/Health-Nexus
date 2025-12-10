@@ -1,0 +1,166 @@
+{% extends 'core/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Home{% endblock %}
+
+{% block dashboard_content %}
+<div class="page-header">
+    <h1><i class="fas fa-home"></i> Dashboard</h1>
+    <p>Welcome back! Here's your health overview for today.</p>
+</div>
+
+<div class="quote-banner">
+    <i class="fas fa-quote-left"></i>
+    <p>"{{ quote.quote }}"</p>
+    <cite>- {{ quote.author }}</cite>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon calories">
+            <i class="fas fa-fire"></i>
+        </div>
+        <div class="stat-info">
+            <h3>{{ today_calories }}</h3>
+            <p>Calories Today</p>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: {{ calorie_percentage }}%"></div>
+            </div>
+            <span class="stat-goal">Goal: {{ calorie_goal }} kcal</span>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon protein">
+            <i class="fas fa-drumstick-bite"></i>
+        </div>
+        <div class="stat-info">
+            <h3>{{ today_protein }}g</h3>
+            <p>Protein</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon carbs">
+            <i class="fas fa-bread-slice"></i>
+        </div>
+        <div class="stat-info">
+            <h3>{{ today_carbs }}g</h3>
+            <p>Carbs</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon fats">
+            <i class="fas fa-cheese"></i>
+        </div>
+        <div class="stat-info">
+            <h3>{{ today_fats }}g</h3>
+            <p>Fats</p>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <div class="dashboard-card nutrition-chart-card">
+        <h2><i class="fas fa-chart-pie"></i> Today's Macros</h2>
+        <div class="chart-container">
+            <canvas id="macroChart"></canvas>
+        </div>
+    </div>
+    
+    <div class="dashboard-card quick-actions-card">
+        <h2><i class="fas fa-bolt"></i> Quick Actions</h2>
+        <div class="quick-actions">
+            <a href="{% url 'ai_cam' %}" class="action-btn">
+                <i class="fas fa-camera"></i>
+                <span>Analyze Food</span>
+            </a>
+            <a href="{% url 'diet_plan' %}" class="action-btn">
+                <i class="fas fa-plus"></i>
+                <span>Log Meal</span>
+            </a>
+            <a href="{% url 'quiz_list' %}" class="action-btn">
+                <i class="fas fa-question"></i>
+                <span>Take Quiz</span>
+            </a>
+            <a href="{% url 'progress' %}" class="action-btn">
+                <i class="fas fa-weight"></i>
+                <span>Log Weight</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <div class="dashboard-card stats-summary-card">
+        <h2><i class="fas fa-trophy"></i> Your Achievements</h2>
+        <div class="achievements">
+            <div class="achievement">
+                <div class="achievement-icon">
+                    <i class="fas fa-utensils"></i>
+                </div>
+                <div class="achievement-info">
+                    <h4>{{ meals_logged }}</h4>
+                    <p>Meals Logged</p>
+                </div>
+            </div>
+            <div class="achievement">
+                <div class="achievement-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <div class="achievement-info">
+                    <h4>{{ quiz_count }}</h4>
+                    <p>Quizzes Completed</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="dashboard-card tips-card">
+        <h2><i class="fas fa-lightbulb"></i> Health Tip</h2>
+        <div class="tip-content">
+            <p>Stay hydrated! Drinking enough water helps maintain energy levels, supports digestion, and keeps your skin healthy. Aim for 8 glasses a day.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const protein = {{ today_protein }};
+        const carbs = {{ today_carbs }};
+        const fats = {{ today_fats }};
+        
+        if (protein > 0 || carbs > 0 || fats > 0) {
+            const ctx = document.getElementById('macroChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Protein', 'Carbs', 'Fats'],
+                    datasets: [{
+                        data: [protein, carbs, fats],
+                        backgroundColor: ['#d38972', '#899d95', '#6b7c74'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                font: { family: 'Poppins' }
+                            }
+                        }
+                    },
+                    cutout: '60%'
+                }
+            });
+        } else {
+            document.getElementById('macroChart').parentElement.innerHTML = '<p class="no-data">Log your first meal to see your macros!</p>';
+        }
+    });
+</script>
+{% endblock %}

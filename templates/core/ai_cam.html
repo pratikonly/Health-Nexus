@@ -1,0 +1,289 @@
+{% extends 'core/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}AI Food Analyzer{% endblock %}
+
+{% block dashboard_content %}
+<div class="page-header">
+    <h1><i class="fas fa-camera"></i> AI Food Analyzer</h1>
+    <p>Upload a food image or enter the food name to get detailed nutrition information.</p>
+</div>
+
+<div class="ai-cam-container">
+    <div class="analyzer-section">
+        <div class="upload-area" id="uploadArea">
+            <input type="file" id="foodImage" accept="image/*" hidden>
+            <div class="upload-content" onclick="document.getElementById('foodImage').click()">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <h3>Upload Food Image</h3>
+                <p>Click or drag and drop an image here</p>
+            </div>
+            <div class="image-preview" id="imagePreview" style="display: none;">
+                <img id="previewImg" src="" alt="Preview">
+                <button class="btn btn-sm btn-outline" onclick="clearImage()">
+                    <i class="fas fa-times"></i> Remove
+                </button>
+            </div>
+        </div>
+        
+        <div class="divider-text">
+            <span>OR</span>
+        </div>
+        
+        <div class="food-name-input">
+            <label for="foodName"><i class="fas fa-search"></i> Enter Food Name</label>
+            <input type="text" id="foodName" placeholder="e.g., Grilled Chicken Salad">
+        </div>
+        
+        <div class="meal-type-select">
+            <label for="mealType"><i class="fas fa-utensils"></i> Meal Type</label>
+            <select id="mealType">
+                <option value="breakfast">Breakfast</option>
+                <option value="lunch">Lunch</option>
+                <option value="dinner">Dinner</option>
+                <option value="snack">Snack</option>
+            </select>
+        </div>
+        
+        <button class="btn btn-primary btn-lg btn-block" id="analyzeBtn" onclick="analyzeFood()">
+            <i class="fas fa-magic"></i> Analyze Food
+        </button>
+    </div>
+    
+    <div class="results-section" id="resultsSection" style="display: none;">
+        <h2><i class="fas fa-clipboard-list"></i> Nutrition Analysis</h2>
+        
+        <div class="nutrition-result">
+            <div class="food-info">
+                <h3 id="resultFoodName">Food Name</h3>
+                <p id="resultServing">Serving size</p>
+            </div>
+            
+            <div class="nutrition-grid">
+                <div class="nutrition-item calories">
+                    <i class="fas fa-fire"></i>
+                    <span class="value" id="resultCalories">0</span>
+                    <span class="label">Calories</span>
+                </div>
+                <div class="nutrition-item protein">
+                    <i class="fas fa-drumstick-bite"></i>
+                    <span class="value" id="resultProtein">0g</span>
+                    <span class="label">Protein</span>
+                </div>
+                <div class="nutrition-item carbs">
+                    <i class="fas fa-bread-slice"></i>
+                    <span class="value" id="resultCarbs">0g</span>
+                    <span class="label">Carbs</span>
+                </div>
+                <div class="nutrition-item fats">
+                    <i class="fas fa-cheese"></i>
+                    <span class="value" id="resultFats">0g</span>
+                    <span class="label">Fats</span>
+                </div>
+                <div class="nutrition-item fiber">
+                    <i class="fas fa-leaf"></i>
+                    <span class="value" id="resultFiber">0g</span>
+                    <span class="label">Fiber</span>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <canvas id="nutritionChart"></canvas>
+            </div>
+            
+            <div class="health-tip" id="healthTip">
+                <i class="fas fa-lightbulb"></i>
+                <p></p>
+            </div>
+            
+            <div class="result-actions">
+                <button class="btn btn-primary" onclick="saveMeal()">
+                    <i class="fas fa-save"></i> Save to Diet Log
+                </button>
+                <button class="btn btn-outline" onclick="analyzeAnother()">
+                    <i class="fas fa-redo"></i> Analyze Another
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+        <div class="loader">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Analyzing your food...</p>
+        </div>
+    </div>
+</div>
+
+{% if recent_analyses %}
+<div class="recent-analyses">
+    <h2><i class="fas fa-history"></i> Recent Analyses</h2>
+    <div class="analyses-grid">
+        {% for meal in recent_analyses %}
+        <div class="analysis-card">
+            {% if meal.food_image %}
+            <img src="{{ meal.food_image.url }}" alt="{{ meal.food_name }}">
+            {% endif %}
+            <div class="analysis-info">
+                <h4>{{ meal.food_name }}</h4>
+                <p>{{ meal.calories }} kcal | {{ meal.protein }}g protein</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<script>
+    let currentImageData = null;
+    let currentNutritionData = null;
+    let nutritionChart = null;
+    
+    document.getElementById('foodImage').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                currentImageData = e.target.result;
+                document.getElementById('previewImg').src = currentImageData;
+                document.getElementById('imagePreview').style.display = 'block';
+                document.querySelector('.upload-content').style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+    
+    function clearImage() {
+        currentImageData = null;
+        document.getElementById('foodImage').value = '';
+        document.getElementById('imagePreview').style.display = 'none';
+        document.querySelector('.upload-content').style.display = 'flex';
+    }
+    
+    function analyzeFood() {
+        const foodName = document.getElementById('foodName').value;
+        const mealType = document.getElementById('mealType').value;
+        
+        if (!currentImageData && !foodName) {
+            alert('Please upload an image or enter a food name.');
+            return;
+        }
+        
+        document.getElementById('loadingOverlay').style.display = 'flex';
+        
+        const formData = new FormData();
+        formData.append('food_name', foodName);
+        formData.append('meal_type', mealType);
+        if (currentImageData) {
+            formData.append('image_data', currentImageData);
+        }
+        
+        fetch('{% url "analyze_food" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('loadingOverlay').style.display = 'none';
+            
+            if (data.success) {
+                currentNutritionData = data.data;
+                displayResults(data.data);
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            document.getElementById('loadingOverlay').style.display = 'none';
+            alert('Error analyzing food. Please try again.');
+        });
+    }
+    
+    function displayResults(data) {
+        document.getElementById('resultFoodName').textContent = data.food_name;
+        document.getElementById('resultServing').textContent = data.serving_size;
+        document.getElementById('resultCalories').textContent = data.calories;
+        document.getElementById('resultProtein').textContent = data.protein + 'g';
+        document.getElementById('resultCarbs').textContent = data.carbs + 'g';
+        document.getElementById('resultFats').textContent = data.fats + 'g';
+        document.getElementById('resultFiber').textContent = data.fiber + 'g';
+        
+        if (data.health_tips) {
+            document.querySelector('#healthTip p').textContent = data.health_tips;
+            document.getElementById('healthTip').style.display = 'flex';
+        }
+        
+        document.getElementById('resultsSection').style.display = 'block';
+        
+        if (nutritionChart) {
+            nutritionChart.destroy();
+        }
+        
+        const ctx = document.getElementById('nutritionChart').getContext('2d');
+        nutritionChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Protein', 'Carbs', 'Fats'],
+                datasets: [{
+                    data: [data.protein, data.carbs, data.fats],
+                    backgroundColor: ['#d38972', '#899d95', '#6b7c74'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            padding: 15,
+                            font: { family: 'Poppins' }
+                        }
+                    }
+                }
+            }
+        });
+        
+        document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    function saveMeal() {
+        if (!currentNutritionData) return;
+        
+        const mealType = document.getElementById('mealType').value;
+        const formData = new FormData();
+        formData.append('food_name', currentNutritionData.food_name);
+        formData.append('meal_type', mealType);
+        if (currentImageData) {
+            formData.append('image_data', currentImageData);
+        }
+        formData.append('save_meal', 'true');
+        
+        fetch('{% url "analyze_food" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Meal saved to your diet log!');
+            }
+        });
+    }
+    
+    function analyzeAnother() {
+        document.getElementById('resultsSection').style.display = 'none';
+        document.getElementById('foodName').value = '';
+        clearImage();
+        currentNutritionData = null;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+</script>
+{% endblock %}

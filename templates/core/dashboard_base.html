@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="dashboard-layout">
+    <nav class="top-navbar">
+        <div class="navbar-left">
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <a href="{% url 'home' %}" class="navbar-logo">
+                <i class="fas fa-heartbeat"></i>
+                <span>VitalTrack</span>
+            </a>
+        </div>
+        <div class="navbar-right">
+            <span class="user-greeting">Hello, {{ user.username }}!</span>
+            <a href="{% url 'logout' %}" class="btn btn-outline btn-sm">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </nav>
+    
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="user-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <span class="user-name">{{ user.username }}</span>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="{% url 'home' %}" class="nav-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="{% url 'quiz_list' %}" class="nav-item {% if 'quiz' in request.resolver_match.url_name %}active{% endif %}">
+                <i class="fas fa-question-circle"></i>
+                <span>Quiz</span>
+            </a>
+            <a href="{% url 'progress' %}" class="nav-item {% if request.resolver_match.url_name == 'progress' %}active{% endif %}">
+                <i class="fas fa-chart-line"></i>
+                <span>Progress</span>
+            </a>
+            <a href="{% url 'ai_cam' %}" class="nav-item {% if request.resolver_match.url_name == 'ai_cam' %}active{% endif %}">
+                <i class="fas fa-camera"></i>
+                <span>AI Cam</span>
+            </a>
+            <a href="{% url 'diet_plan' %}" class="nav-item {% if request.resolver_match.url_name == 'diet_plan' %}active{% endif %}">
+                <i class="fas fa-utensils"></i>
+                <span>Diet Plan</span>
+            </a>
+            <a href="{% url 'settings' %}" class="nav-item {% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <div class="footer-credit">
+                Made by <strong>Debug Delta</strong>
+            </div>
+        </div>
+    </aside>
+    
+    <main class="main-content" id="mainContent">
+        {% block dashboard_content %}{% endblock %}
+    </main>
+</div>
+
+<script>
+    document.getElementById('sidebarToggle').addEventListener('click', function() {
+        document.getElementById('sidebar').classList.toggle('collapsed');
+        document.getElementById('mainContent').classList.toggle('expanded');
+    });
+</script>
+{% endblock %}

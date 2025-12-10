@@ -1,0 +1,190 @@
+{% extends 'core/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Progress{% endblock %}
+
+{% block dashboard_content %}
+<div class="page-header">
+    <h1><i class="fas fa-chart-line"></i> Progress Tracking</h1>
+    <p>Monitor your health journey over time.</p>
+</div>
+
+<div class="progress-grid">
+    <div class="progress-card weight-card">
+        <div class="card-header">
+            <h2><i class="fas fa-weight"></i> Weight Tracking</h2>
+            <button class="btn btn-primary btn-sm" onclick="openWeightModal()">
+                <i class="fas fa-plus"></i> Log Weight
+            </button>
+        </div>
+        
+        <div class="weight-stats">
+            {% if profile.weight %}
+            <div class="current-weight">
+                <span class="value">{{ profile.weight }}</span>
+                <span class="unit">kg</span>
+            </div>
+            {% if profile.target_weight %}
+            <div class="weight-goal">
+                <p>Target: <strong>{{ profile.target_weight }} kg</strong></p>
+                <p>To go: <strong>{% widthratio profile.weight 1 1 as current %}{% widthratio profile.target_weight 1 1 as target %}{{ profile.weight|floatformat:1 }} - {{ profile.target_weight|floatformat:1 }} kg</strong></p>
+            </div>
+            {% endif %}
+            {% if profile.get_bmi %}
+            <div class="bmi-display">
+                <span class="bmi-value">{{ profile.get_bmi }}</span>
+                <span class="bmi-label">BMI</span>
+            </div>
+            {% endif %}
+            {% else %}
+            <div class="no-weight">
+                <i class="fas fa-weight"></i>
+                <p>No weight logged yet</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="chart-container">
+            <canvas id="weightChart"></canvas>
+        </div>
+    </div>
+    
+    <div class="progress-card calories-card">
+        <h2><i class="fas fa-fire"></i> Calorie Intake (Last 7 Days)</h2>
+        <div class="chart-container">
+            <canvas id="calorieChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="progress-card quiz-history-card">
+    <h2><i class="fas fa-brain"></i> Quiz Performance</h2>
+    {% if quiz_results %}
+    <div class="quiz-results-list">
+        {% for result in quiz_results %}
+        <div class="quiz-result-item">
+            <div class="quiz-info">
+                <h4>{{ result.quiz.title }}</h4>
+                <span class="quiz-date">{{ result.completed_at|date:"M d, Y" }}</span>
+            </div>
+            <div class="quiz-score">
+                <div class="score-circle {% if result.percentage >= 70 %}good{% elif result.percentage >= 50 %}medium{% else %}low{% endif %}">
+                    <span>{{ result.percentage|floatformat:0 }}%</span>
+                </div>
+                <span class="score-detail">{{ result.score }}/{{ result.total_questions }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="no-quizzes">
+        <i class="fas fa-question-circle"></i>
+        <p>No quizzes completed yet. <a href="{% url 'quiz_list' %}">Take a quiz</a> to track your progress!</p>
+    </div>
+    {% endif %}
+</div>
+
+<div class="modal" id="weightModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2><i class="fas fa-weight"></i> Log Weight</h2>
+            <button class="modal-close" onclick="closeWeightModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form action="{% url 'log_weight' %}" method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="weight">Weight (kg)</label>
+                <input type="number" name="weight" id="weight" step="0.1" required placeholder="e.g., 70.5" value="{{ profile.weight|default:'' }}">
+            </div>
+            <div class="form-group">
+                <label for="date">Date</label>
+                <input type="date" name="date" id="date" value="">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">
+                <i class="fas fa-save"></i> Save Weight
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openWeightModal() {
+        document.getElementById('weightModal').classList.add('active');
+        document.getElementById('date').valueAsDate = new Date();
+    }
+    
+    function closeWeightModal() {
+        document.getElementById('weightModal').classList.remove('active');
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const weightData = [
+            {% for log in weight_logs %}
+            { date: '{{ log.date|date:"M d" }}', weight: {{ log.weight }} }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+        
+        if (weightData.length > 0) {
+            const weightCtx = document.getElementById('weightChart').getContext('2d');
+            new Chart(weightCtx, {
+                type: 'line',
+                data: {
+                    labels: weightData.map(d => d.date),
+                    datasets: [{
+                        label: 'Weight (kg)',
+                        data: weightData.map(d => d.weight),
+                        borderColor: '#d38972',
+                        backgroundColor: 'rgba(211, 137, 114, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#d38972',
+                        pointRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { grid: { color: '#f0f0f0' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        } else {
+            document.getElementById('weightChart').parentElement.innerHTML = '<p class="no-data">No weight data yet</p>';
+        }
+        
+        const calorieData = [
+            {% for day in last_7_days %}
+            { day: '{{ day.date }}', calories: {{ day.calories }} }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+        
+        const calorieCtx = document.getElementById('calorieChart').getContext('2d');
+        new Chart(calorieCtx, {
+            type: 'bar',
+            data: {
+                labels: calorieData.map(d => d.day),
+                datasets: [{
+                    label: 'Calories',
+                    data: calorieData.map(d => d.calories),
+                    backgroundColor: '#899d95',
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#f0f0f0' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

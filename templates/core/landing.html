@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Welcome{% endblock %}
+
+{% block content %}
+<nav class="navbar landing-navbar">
+    <div class="navbar-container">
+        <a href="{% url 'landing' %}" class="navbar-logo">
+            <i class="fas fa-heartbeat"></i>
+            <span>VitalTrack</span>
+        </a>
+        <div class="navbar-right">
+            <a href="{% url 'auth' %}" class="btn btn-outline">Login</a>
+            <a href="{% url 'auth' %}?mode=register" class="btn btn-primary">Get Started</a>
+        </div>
+    </div>
+</nav>
+
+<section class="hero-section">
+    <div class="hero-content">
+        <h1>Transform Your <span class="highlight">Health Journey</span></h1>
+        <p>Track your nutrition, analyze your meals with AI, and achieve your wellness goals with VitalTrack - your personal health companion.</p>
+        <div class="hero-buttons">
+            <a href="{% url 'auth' %}?mode=register" class="btn btn-primary btn-lg">
+                <i class="fas fa-rocket"></i> Start Free
+            </a>
+            <a href="#features" class="btn btn-outline btn-lg">
+                <i class="fas fa-arrow-down"></i> Learn More
+            </a>
+        </div>
+    </div>
+    <div class="hero-image">
+        <div class="hero-card">
+            <div class="card-icon"><i class="fas fa-apple-whole"></i></div>
+            <h3>Smart Nutrition</h3>
+            <p>AI-powered food analysis</p>
+        </div>
+        <div class="hero-card">
+            <div class="card-icon"><i class="fas fa-chart-line"></i></div>
+            <h3>Track Progress</h3>
+            <p>Visualize your journey</p>
+        </div>
+        <div class="hero-card">
+            <div class="card-icon"><i class="fas fa-brain"></i></div>
+            <h3>Health Quiz</h3>
+            <p>Test your knowledge</p>
+        </div>
+    </div>
+</section>
+
+<section id="features" class="features-section">
+    <div class="section-header">
+        <h2>Why Choose <span class="highlight">VitalTrack</span>?</h2>
+        <p>Everything you need for a healthier lifestyle, in one place</p>
+    </div>
+    
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-camera"></i>
+            </div>
+            <h3>AI Food Recognition</h3>
+            <p>Simply snap a photo of your meal and our AI instantly provides detailed nutritional information including calories, protein, carbs, and more.</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-utensils"></i>
+            </div>
+            <h3>Diet Planning</h3>
+            <p>Create personalized meal plans, log your daily food intake, and track your nutrition goals with easy-to-understand visualizations.</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-chart-pie"></i>
+            </div>
+            <h3>Nutrition Charts</h3>
+            <p>Beautiful pie charts and graphs show your macronutrient breakdown, helping you understand exactly what you're eating.</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-trophy"></i>
+            </div>
+            <h3>Progress Tracking</h3>
+            <p>Monitor your weight, calorie intake, and health goals over time with detailed progress charts and statistics.</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-question-circle"></i>
+            </div>
+            <h3>Health Quizzes</h3>
+            <p>Test and expand your nutrition and wellness knowledge with interactive quizzes designed by health experts.</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-cog"></i>
+            </div>
+            <h3>Personalized Settings</h3>
+            <p>Customize your daily calorie goals, dietary preferences, and profile settings to match your unique health journey.</p>
+        </div>
+    </div>
+</section>
+
+<section class="quote-section">
+    <div class="quote-content">
+        <i class="fas fa-quote-left quote-icon"></i>
+        <blockquote>
+            "Take care of your body. It's the only place you have to live."
+        </blockquote>
+        <cite>- Jim Rohn</cite>
+    </div>
+</section>
+
+<section class="cta-section">
+    <div class="cta-content">
+        <h2>Ready to Start Your Health Journey?</h2>
+        <p>Join thousands of users who are already living healthier lives with VitalTrack</p>
+        <a href="{% url 'auth' %}?mode=register" class="btn btn-primary btn-lg">
+            <i class="fas fa-user-plus"></i> Create Free Account
+        </a>
+    </div>
+</section>
+
+<footer class="footer">
+    <div class="footer-content">
+        <div class="footer-brand">
+            <i class="fas fa-heartbeat"></i>
+            <span>VitalTrack</span>
+        </div>
+        <p>Your personal health and nutrition companion</p>
+        <div class="footer-credit">
+            Made with <i class="fas fa-heart"></i> by <strong>Debug Delta</strong>
+        </div>
+    </div>
+</footer>
+{% endblock %}

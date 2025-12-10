@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Login / Register{% endblock %}
+
+{% block content %}
+<nav class="navbar landing-navbar">
+    <div class="navbar-container">
+        <a href="{% url 'landing' %}" class="navbar-logo">
+            <i class="fas fa-heartbeat"></i>
+            <span>VitalTrack</span>
+        </a>
+    </div>
+</nav>
+
+<div class="auth-container">
+    <div class="auth-box">
+        <div class="auth-header">
+            <h1><i class="fas fa-heartbeat"></i> VitalTrack</h1>
+            <p>Your Health Journey Starts Here</p>
+        </div>
+        
+        <div class="auth-toggle">
+            <button class="toggle-btn active" id="loginToggle" onclick="showLogin()">Login</button>
+            <button class="toggle-btn" id="registerToggle" onclick="showRegister()">Register</button>
+            <div class="toggle-slider" id="toggleSlider"></div>
+        </div>
+        
+        <div class="auth-forms">
+            <form class="auth-form active" id="loginForm" action="{% url 'login' %}" method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="login-username">
+                        <i class="fas fa-user"></i> Username
+                    </label>
+                    <input type="text" id="login-username" name="username" required placeholder="Enter your username">
+                </div>
+                <div class="form-group">
+                    <label for="login-password">
+                        <i class="fas fa-lock"></i> Password
+                    </label>
+                    <input type="password" id="login-password" name="password" required placeholder="Enter your password">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+            </form>
+            
+            <form class="auth-form" id="registerForm" action="{% url 'register' %}" method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="reg-username">
+                        <i class="fas fa-user"></i> Username
+                    </label>
+                    <input type="text" id="reg-username" name="username" required placeholder="Choose a username">
+                </div>
+                <div class="form-group">
+                    <label for="reg-email">
+                        <i class="fas fa-envelope"></i> Email
+                    </label>
+                    <input type="email" id="reg-email" name="email" required placeholder="Enter your email">
+                </div>
+                <div class="form-group">
+                    <label for="reg-password">
+                        <i class="fas fa-lock"></i> Password
+                    </label>
+                    <input type="password" id="reg-password" name="password" required placeholder="Create a password">
+                </div>
+                <div class="form-group">
+                    <label for="reg-confirm">
+                        <i class="fas fa-lock"></i> Confirm Password
+                    </label>
+                    <input type="password" id="reg-confirm" name="confirm_password" required placeholder="Confirm your password">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">
+                    <i class="fas fa-user-plus"></i> Create Account
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<footer class="footer auth-footer">
+    <div class="footer-credit">
+        Made with <i class="fas fa-heart"></i> by <strong>Debug Delta</strong>
+    </div>
+</footer>
+
+<script>
+    function showLogin() {
+        document.getElementById('loginForm').classList.add('active');
+        document.getElementById('registerForm').classList.remove('active');
+        document.getElementById('loginToggle').classList.add('active');
+        document.getElementById('registerToggle').classList.remove('active');
+        document.getElementById('toggleSlider').style.left = '0';
+    }
+    
+    function showRegister() {
+        document.getElementById('registerForm').classList.add('active');
+        document.getElementById('loginForm').classList.remove('active');
+        document.getElementById('registerToggle').classList.add('active');
+        document.getElementById('loginToggle').classList.remove('active');
+        document.getElementById('toggleSlider').style.left = '50%';
+    }
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('mode') === 'register') {
+        showRegister();
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,96 @@
+{% extends 'core/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Settings{% endblock %}
+
+{% block dashboard_content %}
+<div class="page-header">
+    <h1><i class="fas fa-cog"></i> Settings</h1>
+    <p>Manage your profile and preferences.</p>
+</div>
+
+<div class="settings-container">
+    <form action="{% url 'settings' %}" method="POST" class="settings-form">
+        {% csrf_token %}
+        
+        <div class="settings-section">
+            <h2><i class="fas fa-user"></i> Personal Information</h2>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="first_name">First Name</label>
+                    <input type="text" name="first_name" id="first_name" value="{{ user.first_name }}" placeholder="Enter first name">
+                </div>
+                <div class="form-group">
+                    <label for="last_name">Last Name</label>
+                    <input type="text" name="last_name" id="last_name" value="{{ user.last_name }}" placeholder="Enter last name">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" name="email" id="email" value="{{ user.email }}" placeholder="Enter email">
+            </div>
+            
+            <div class="form-group">
+                <label for="date_of_birth">Date of Birth</label>
+                <input type="date" name="date_of_birth" id="date_of_birth" value="{{ profile.date_of_birth|date:'Y-m-d' }}">
+            </div>
+        </div>
+        
+        <div class="settings-section">
+            <h2><i class="fas fa-heartbeat"></i> Health Information</h2>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="height">Height (cm)</label>
+                    <input type="number" name="height" id="height" step="0.1" value="{{ profile.height|default:'' }}" placeholder="e.g., 175">
+                </div>
+                <div class="form-group">
+                    <label for="weight">Current Weight (kg)</label>
+                    <input type="number" name="weight" id="weight" step="0.1" value="{{ profile.weight|default:'' }}" placeholder="e.g., 70">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="target_weight">Target Weight (kg)</label>
+                    <input type="number" name="target_weight" id="target_weight" step="0.1" value="{{ profile.target_weight|default:'' }}" placeholder="e.g., 65">
+                </div>
+                <div class="form-group">
+                    <label for="daily_calorie_goal">Daily Calorie Goal</label>
+                    <input type="number" name="daily_calorie_goal" id="daily_calorie_goal" value="{{ profile.daily_calorie_goal }}" placeholder="e.g., 2000">
+                </div>
+            </div>
+            
+            {% if profile.height and profile.weight %}
+            <div class="bmi-info">
+                <i class="fas fa-info-circle"></i>
+                <span>Your current BMI: <strong>{{ profile.get_bmi }}</strong></span>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="settings-section">
+            <h2><i class="fas fa-utensils"></i> Dietary Preferences</h2>
+            
+            <div class="form-group">
+                <label for="dietary_preference">Dietary Preference</label>
+                <select name="dietary_preference" id="dietary_preference">
+                    <option value="none" {% if profile.dietary_preference == 'none' %}selected{% endif %}>No Preference</option>
+                    <option value="vegetarian" {% if profile.dietary_preference == 'vegetarian' %}selected{% endif %}>Vegetarian</option>
+                    <option value="vegan" {% if profile.dietary_preference == 'vegan' %}selected{% endif %}>Vegan</option>
+                    <option value="keto" {% if profile.dietary_preference == 'keto' %}selected{% endif %}>Keto</option>
+                    <option value="paleo" {% if profile.dietary_preference == 'paleo' %}selected{% endif %}>Paleo</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="settings-actions">
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="fas fa-save"></i> Save Changes
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

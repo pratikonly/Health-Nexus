@@ -1,0 +1,53 @@
+{% extends 'core/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Health Quizzes{% endblock %}
+
+{% block dashboard_content %}
+<div class="page-header">
+    <h1><i class="fas fa-question-circle"></i> Health Quizzes</h1>
+    <p>Test your knowledge on nutrition, fitness, and wellness.</p>
+</div>
+
+<div class="quiz-grid">
+    {% if quiz_data %}
+        {% for item in quiz_data %}
+        <div class="quiz-card">
+            <div class="quiz-category {{ item.quiz.category }}">
+                {% if item.quiz.category == 'nutrition' %}
+                    <i class="fas fa-apple-whole"></i>
+                {% elif item.quiz.category == 'fitness' %}
+                    <i class="fas fa-dumbbell"></i>
+                {% elif item.quiz.category == 'wellness' %}
+                    <i class="fas fa-spa"></i>
+                {% else %}
+                    <i class="fas fa-brain"></i>
+                {% endif %}
+                <span>{{ item.quiz.category|capfirst }}</span>
+            </div>
+            <h3>{{ item.quiz.title }}</h3>
+            <p>{{ item.quiz.description }}</p>
+            <div class="quiz-meta">
+                <span><i class="fas fa-question"></i> {{ item.question_count }} Questions</span>
+                {% if item.result %}
+                <span class="score"><i class="fas fa-trophy"></i> Best: {{ item.result.percentage|floatformat:0 }}%</span>
+                {% endif %}
+            </div>
+            <a href="{% url 'quiz_detail' item.quiz.id %}" class="btn btn-primary btn-block">
+                {% if item.result %}
+                    <i class="fas fa-redo"></i> Retake Quiz
+                {% else %}
+                    <i class="fas fa-play"></i> Start Quiz
+                {% endif %}
+            </a>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="no-quizzes-message">
+            <i class="fas fa-clipboard-list"></i>
+            <h3>No quizzes available yet</h3>
+            <p>Check back later for new health quizzes!</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

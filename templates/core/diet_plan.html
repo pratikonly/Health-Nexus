@@ -1,0 +1,252 @@
+{% extends 'core/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Diet Plan{% endblock %}
+
+{% block dashboard_content %}
+<div class="page-header">
+    <h1><i class="fas fa-utensils"></i> Diet Plan</h1>
+    <p>Track your daily nutrition and manage your meals.</p>
+</div>
+
+<div class="diet-overview">
+    <div class="overview-card">
+        <div class="overview-header">
+            <h2><i class="fas fa-calendar-day"></i> Today's Summary</h2>
+            <span class="date">{{ today_meals.0.date|default:"Today" }}</span>
+        </div>
+        
+        <div class="nutrition-summary">
+            <div class="summary-item">
+                <div class="summary-circle calories">
+                    <span class="value">{{ today_totals.calories }}</span>
+                    <span class="label">kcal</span>
+                </div>
+                <p>Calories</p>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {% widthratio today_totals.calories profile.daily_calorie_goal 100 %}%"></div>
+                </div>
+                <span class="goal-text">Goal: {{ profile.daily_calorie_goal }} kcal</span>
+            </div>
+            
+            <div class="summary-item">
+                <div class="summary-circle protein">
+                    <span class="value">{{ today_totals.protein }}</span>
+                    <span class="label">g</span>
+                </div>
+                <p>Protein</p>
+            </div>
+            
+            <div class="summary-item">
+                <div class="summary-circle carbs">
+                    <span class="value">{{ today_totals.carbs }}</span>
+                    <span class="label">g</span>
+                </div>
+                <p>Carbs</p>
+            </div>
+            
+            <div class="summary-item">
+                <div class="summary-circle fats">
+                    <span class="value">{{ today_totals.fats }}</span>
+                    <span class="label">g</span>
+                </div>
+                <p>Fats</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="diet-grid">
+    <div class="diet-card meals-card">
+        <div class="card-header">
+            <h2><i class="fas fa-list"></i> Today's Meals</h2>
+            <button class="btn btn-primary btn-sm" onclick="openLogModal()">
+                <i class="fas fa-plus"></i> Log Meal
+            </button>
+        </div>
+        
+        <div class="meals-list">
+            {% if today_meals %}
+                {% for meal in today_meals %}
+                <div class="meal-item">
+                    <div class="meal-type {{ meal.meal_type }}">
+                        {% if meal.meal_type == 'breakfast' %}
+                            <i class="fas fa-sun"></i>
+                        {% elif meal.meal_type == 'lunch' %}
+                            <i class="fas fa-cloud-sun"></i>
+                        {% elif meal.meal_type == 'dinner' %}
+                            <i class="fas fa-moon"></i>
+                        {% else %}
+                            <i class="fas fa-cookie"></i>
+                        {% endif %}
+                    </div>
+                    <div class="meal-info">
+                        <h4>{{ meal.food_name }}</h4>
+                        <p>{{ meal.meal_type|capfirst }} | {{ meal.serving_size }}</p>
+                    </div>
+                    <div class="meal-nutrition">
+                        <span class="cal">{{ meal.calories }} kcal</span>
+                        <span class="macro">P: {{ meal.protein }}g | C: {{ meal.carbs }}g | F: {{ meal.fats }}g</span>
+                    </div>
+                    <a href="{% url 'delete_meal' meal.id %}" class="btn-icon delete" onclick="return confirm('Delete this meal?')">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-meals">
+                    <i class="fas fa-utensils"></i>
+                    <p>No meals logged today. Start by logging your first meal!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="diet-card chart-card">
+        <h2><i class="fas fa-chart-pie"></i> Macro Distribution</h2>
+        <div class="chart-container">
+            <canvas id="macroChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="weekly-overview">
+    <h2><i class="fas fa-calendar-week"></i> Last 7 Days</h2>
+    <div class="chart-container-wide">
+        <canvas id="weeklyChart"></canvas>
+    </div>
+</div>
+
+<div class="modal" id="logMealModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2><i class="fas fa-plus-circle"></i> Log New Meal</h2>
+            <button class="modal-close" onclick="closeLogModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form action="{% url 'log_meal' %}" method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="meal_type">Meal Type</label>
+                <select name="meal_type" id="meal_type" required>
+                    <option value="breakfast">Breakfast</option>
+                    <option value="lunch">Lunch</option>
+                    <option value="dinner">Dinner</option>
+                    <option value="snack">Snack</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="food_name">Food Name</label>
+                <input type="text" name="food_name" id="food_name" required placeholder="e.g., Grilled Chicken Breast">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="calories">Calories</label>
+                    <input type="number" name="calories" id="calories" step="0.1" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label for="serving_size">Serving Size</label>
+                    <input type="text" name="serving_size" id="serving_size" placeholder="1 serving">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="protein">Protein (g)</label>
+                    <input type="number" name="protein" id="protein" step="0.1" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label for="carbs">Carbs (g)</label>
+                    <input type="number" name="carbs" id="carbs" step="0.1" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label for="fats">Fats (g)</label>
+                    <input type="number" name="fats" id="fats" step="0.1" placeholder="0">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="notes">Notes (optional)</label>
+                <textarea name="notes" id="notes" placeholder="Add any notes..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">
+                <i class="fas fa-save"></i> Save Meal
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openLogModal() {
+        document.getElementById('logMealModal').classList.add('active');
+    }
+    
+    function closeLogModal() {
+        document.getElementById('logMealModal').classList.remove('active');
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const protein = {{ today_totals.protein }};
+        const carbs = {{ today_totals.carbs }};
+        const fats = {{ today_totals.fats }};
+        
+        if (protein > 0 || carbs > 0 || fats > 0) {
+            const ctx = document.getElementById('macroChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Protein', 'Carbs', 'Fats'],
+                    datasets: [{
+                        data: [protein, carbs, fats],
+                        backgroundColor: ['#d38972', '#899d95', '#6b7c74'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { padding: 15, font: { family: 'Poppins' } }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+        } else {
+            document.getElementById('macroChart').parentElement.innerHTML = '<p class="no-data">No data yet</p>';
+        }
+        
+        const weeklyData = [
+            {% for day in last_7_days %}
+            { day: '{{ day.day }}', calories: {{ day.calories }} }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+        
+        const weeklyCtx = document.getElementById('weeklyChart').getContext('2d');
+        new Chart(weeklyCtx, {
+            type: 'bar',
+            data: {
+                labels: weeklyData.map(d => d.day),
+                datasets: [{
+                    label: 'Calories',
+                    data: weeklyData.map(d => d.calories),
+                    backgroundColor: '#d38972',
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#f0f0f0' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
