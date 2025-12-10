@@ -1,169 +1,217 @@
+
 {% extends 'core/dashboard_base.html' %}
 {% load static %}
 
 {% block title %}Home{% endblock %}
 
 {% block dashboard_content %}
-<div class="home-hero-section">
-    <div class="hero-greeting-container">
-        <div class="greeting-badge">
-            <span class="wave-emoji">👋</span>
-            <div class="greeting-text-wrapper">
-                <h1 class="hero-greeting">Hello, {{ user.first_name|default:user.username }}!</h1>
-                <p class="hero-subtitle">Welcome back to your health journey</p>
+<div class="modern-home-wrapper">
+    <!-- Hero Greeting Section -->
+    <div class="hero-greeting-section">
+        <div class="greeting-content">
+            <div class="greeting-header">
+                <div class="greeting-emoji-lg">
+                    <span class="wave-hand">👋</span>
+                </div>
+                <div class="greeting-text">
+                    <h1 class="greeting-title">Welcome Back, {{ user.first_name|default:user.username }}!</h1>
+                    <p class="greeting-subtitle">Ready to continue your amazing health journey today?</p>
+                </div>
+            </div>
+            
+            <div class="greeting-stats-row">
+                <div class="stat-badge">
+                    <div class="stat-icon fire">
+                        <i class="fas fa-fire"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value">{{ profile.daily_calorie_goal }}</span>
+                        <span class="stat-label">Daily Goal</span>
+                    </div>
+                </div>
+                
+                {% if profile.weight %}
+                <div class="stat-badge">
+                    <div class="stat-icon weight">
+                        <i class="fas fa-weight"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value">{{ profile.weight }} kg</span>
+                        <span class="stat-label">Current Weight</span>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="stat-badge">
+                    <div class="stat-icon calendar">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value">{{ user.date_joined|timesince|truncatewords:1 }}</span>
+                        <span class="stat-label">Active Since</span>
+                    </div>
+                </div>
             </div>
         </div>
         
-        <div class="hero-stats-pills">
-            <div class="stat-pill">
-                <i class="fas fa-fire"></i>
-                <span>{{ profile.daily_calorie_goal }} kcal</span>
+        <div class="hero-visual">
+            <div class="floating-health-card card-1">
+                <div class="health-card-icon">❤️</div>
+                <div class="health-card-text">
+                    <strong>Heart Health</strong>
+                    <span>Stay Active</span>
+                </div>
             </div>
-            {% if profile.weight %}
-            <div class="stat-pill">
-                <i class="fas fa-weight"></i>
-                <span>{{ profile.weight }} kg</span>
+            <div class="floating-health-card card-2">
+                <div class="health-card-icon">🥗</div>
+                <div class="health-card-text">
+                    <strong>Nutrition</strong>
+                    <span>Eat Balanced</span>
+                </div>
             </div>
-            {% endif %}
-            <div class="stat-pill">
-                <i class="fas fa-calendar-check"></i>
-                <span>Day {{ user.date_joined|timesince|truncatewords:1 }}</span>
+            <div class="floating-health-card card-3">
+                <div class="health-card-icon">💪</div>
+                <div class="health-card-text">
+                    <strong>Fitness</strong>
+                    <span>Build Strength</span>
+                </div>
+            </div>
+            <div class="floating-health-card card-4">
+                <div class="health-card-icon">🧘</div>
+                <div class="health-card-text">
+                    <strong>Wellness</strong>
+                    <span>Mind & Body</span>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="hero-cards-grid">
-        <div class="floating-card card-health">
-            <div class="card-icon-wrapper">
-                <i class="fas fa-heartbeat"></i>
-            </div>
-            <h3>Stay Healthy</h3>
-            <p>Monitor vitals</p>
+    <!-- Feature Cards with Images -->
+    <div class="feature-showcase">
+        <div class="section-title-modern">
+            <h2>
+                <span class="title-icon">✨</span>
+                Explore Your Health Tools
+            </h2>
+            <p>Everything you need to track, analyze, and improve your wellness</p>
         </div>
-        <div class="floating-card card-nutrition">
-            <div class="card-icon-wrapper">
-                <i class="fas fa-apple-alt"></i>
-            </div>
-            <h3>Eat Well</h3>
-            <p>Balanced nutrition</p>
-        </div>
-        <div class="floating-card card-fitness">
-            <div class="card-icon-wrapper">
-                <i class="fas fa-dumbbell"></i>
-            </div>
-            <h3>Stay Active</h3>
-            <p>Daily exercise</p>
+
+        <div class="feature-cards-grid">
+            <a href="{% url 'dashboard_home' %}" class="feature-showcase-card card-dashboard">
+                <div class="card-image-wrapper">
+                    <div class="card-image-placeholder">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                </div>
+                <div class="card-details">
+                    <h3>Dashboard Analytics</h3>
+                    <p>View comprehensive stats, track your daily progress, and visualize your health metrics in real-time.</p>
+                    <div class="card-action">
+                        <span>View Dashboard</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </div>
+            </a>
+
+            <a href="{% url 'ai_cam' %}" class="feature-showcase-card card-ai">
+                <div class="card-image-wrapper">
+                    <div class="card-image-placeholder">
+                        <i class="fas fa-camera-retro"></i>
+                    </div>
+                </div>
+                <div class="card-details">
+                    <h3>AI Food Analyzer</h3>
+                    <p>Snap a photo of your meal and get instant nutritional analysis powered by advanced AI technology.</p>
+                    <div class="card-action">
+                        <span>Scan Food</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </div>
+            </a>
+
+            <a href="{% url 'diet_plan' %}" class="feature-showcase-card card-diet">
+                <div class="card-image-wrapper">
+                    <div class="card-image-placeholder">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                </div>
+                <div class="card-details">
+                    <h3>Diet & Meal Planning</h3>
+                    <p>Log your meals, track macros, and plan your nutrition to achieve your health goals effectively.</p>
+                    <div class="card-action">
+                        <span>Manage Diet</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </div>
+            </a>
+
+            <a href="{% url 'quiz_list' %}" class="feature-showcase-card card-quiz">
+                <div class="card-image-wrapper">
+                    <div class="card-image-placeholder">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                </div>
+                <div class="card-details">
+                    <h3>Health Knowledge Quiz</h3>
+                    <p>Test your health knowledge, learn new facts, and become more informed about wellness.</p>
+                    <div class="card-action">
+                        <span>Take Quiz</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </div>
+            </a>
+
+            <a href="{% url 'progress' %}" class="feature-showcase-card card-progress">
+                <div class="card-image-wrapper">
+                    <div class="card-image-placeholder">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                </div>
+                <div class="card-details">
+                    <h3>Track Your Progress</h3>
+                    <p>Monitor your weight changes, calorie trends, and celebrate your achievements over time.</p>
+                    <div class="card-action">
+                        <span>View Progress</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </div>
+            </a>
+
+            <a href="{% url 'settings' %}" class="feature-showcase-card card-settings">
+                <div class="card-image-wrapper">
+                    <div class="card-image-placeholder">
+                        <i class="fas fa-sliders-h"></i>
+                    </div>
+                </div>
+                <div class="card-details">
+                    <h3>Personal Settings</h3>
+                    <p>Customize your profile, set goals, and manage preferences to personalize your experience.</p>
+                    <div class="card-action">
+                        <span>Edit Settings</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </div>
+            </a>
         </div>
     </div>
-</div>
 
-<div class="quick-actions-container">
-    <div class="section-header-modern">
-        <div class="header-icon-badge">
-            <i class="fas fa-bolt"></i>
+    <!-- Motivational Banner -->
+    <div class="motivational-banner">
+        <div class="banner-bg-pattern"></div>
+        <div class="banner-content-wrapper">
+            <div class="quote-icon-large">
+                <i class="fas fa-quote-left"></i>
+            </div>
+            <div class="quote-text-content">
+                <h3>Daily Inspiration</h3>
+                <blockquote>
+                    "The greatest wealth is health. Every step you take towards better nutrition, 
+                    every workout you complete, and every healthy choice you make is an investment 
+                    in your future self. Keep going, you're doing amazing!"
+                </blockquote>
+                <cite>— Your Health Journey</cite>
+            </div>
         </div>
-        <div>
-            <h2>Quick Access</h2>
-            <p>Jump to your favorite features</p>
-        </div>
-    </div>
-
-    <div class="modern-cards-grid">
-        <a href="{% url 'dashboard_home' %}" class="modern-access-card gradient-dashboard">
-            <div class="card-icon-circle">
-                <i class="fas fa-chart-line"></i>
-            </div>
-            <div class="card-content">
-                <h3>Dashboard</h3>
-                <p>View stats & progress</p>
-            </div>
-            <div class="card-arrow">
-                <i class="fas fa-arrow-right"></i>
-            </div>
-        </a>
-
-        <a href="{% url 'ai_cam' %}" class="modern-access-card gradient-ai">
-            <div class="card-icon-circle">
-                <i class="fas fa-camera"></i>
-            </div>
-            <div class="card-content">
-                <h3>AI Analyzer</h3>
-                <p>Scan food instantly</p>
-            </div>
-            <div class="card-arrow">
-                <i class="fas fa-arrow-right"></i>
-            </div>
-        </a>
-
-        <a href="{% url 'diet_plan' %}" class="modern-access-card gradient-diet">
-            <div class="card-icon-circle">
-                <i class="fas fa-utensils"></i>
-            </div>
-            <div class="card-content">
-                <h3>Diet Plan</h3>
-                <p>Log meals & nutrition</p>
-            </div>
-            <div class="card-arrow">
-                <i class="fas fa-arrow-right"></i>
-            </div>
-        </a>
-
-        <a href="{% url 'quiz_list' %}" class="modern-access-card gradient-quiz">
-            <div class="card-icon-circle">
-                <i class="fas fa-brain"></i>
-            </div>
-            <div class="card-content">
-                <h3>Health Quiz</h3>
-                <p>Test your knowledge</p>
-            </div>
-            <div class="card-arrow">
-                <i class="fas fa-arrow-right"></i>
-            </div>
-        </a>
-
-        <a href="{% url 'progress' %}" class="modern-access-card gradient-progress">
-            <div class="card-icon-circle">
-                <i class="fas fa-chart-bar"></i>
-            </div>
-            <div class="card-content">
-                <h3>Progress</h3>
-                <p>Track achievements</p>
-            </div>
-            <div class="card-arrow">
-                <i class="fas fa-arrow-right"></i>
-            </div>
-        </a>
-
-        <a href="{% url 'settings' %}" class="modern-access-card gradient-settings">
-            <div class="card-icon-circle">
-                <i class="fas fa-cog"></i>
-            </div>
-            <div class="card-content">
-                <h3>Settings</h3>
-                <p>Manage preferences</p>
-            </div>
-            <div class="card-arrow">
-                <i class="fas fa-arrow-right"></i>
-            </div>
-        </a>
-    </div>
-</div>
-
-<div class="inspiration-banner">
-    <div class="banner-icon">
-        <i class="fas fa-quote-left"></i>
-    </div>
-    <div class="banner-content">
-        <h3>Today's Inspiration</h3>
-        <blockquote>
-            "The greatest wealth is health. Take one step at a time towards your goals, 
-            and remember that every healthy choice you make is an investment in your future."
-        </blockquote>
-    </div>
-    <div class="banner-decoration">
-        <div class="decoration-circle"></div>
-        <div class="decoration-circle"></div>
-        <div class="decoration-circle"></div>
     </div>
 </div>
 {% endblock %}
