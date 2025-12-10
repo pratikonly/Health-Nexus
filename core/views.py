@@ -153,108 +153,78 @@ def analyze_food(request):
     if request.method == 'POST':
         try:
             import os
-            import base64 as b64
-            from google import genai
-            from google.genai import types
-            
-            # Using Google Gemini API for food analysis
-            api_key = os.environ.get('GEMINI_API_KEY')
-            if not api_key:
-                return JsonResponse({
-                    'success': False, 
-                    'error': 'Gemini API key not configured. Please add GEMINI_API_KEY in the Secrets tab.'
-                })
-            
-            client = genai.Client(api_key=api_key)
+            import requests
             
             food_name = request.POST.get('food_name', '').strip()
             image_data = request.POST.get('image_data', '').strip()
             meal_type = request.POST.get('meal_type', 'snack')
             
-            # Validate input
-            if not image_data and not food_name:
+            # Validate input - food name is required for nutrition lookup
+            if not food_name:
                 return JsonResponse({
                     'success': False, 
-                    'error': 'Please provide either a food image or food name'
+                    'error': 'Please enter the food name to get nutrition information'
                 })
             
-            prompt = """Analyze this food and provide detailed nutrition information.
-            Return ONLY a valid JSON object with this exact format (no markdown, no extra text):
-            {
-                "food_name": "name of the food",
-                "calories": 0,
-                "protein": 0,
-                "carbs": 0,
-                "fats": 0,
-                "fiber": 0,
-                "serving_size": "estimated serving size",
-                "health_tips": "brief health tip about this food"
-            }
-            Use realistic nutritional values based on a standard serving."""
+            # Use API Ninjas free nutrition API
+            api_url = f'https://api.api-ninjas.com/v1/nutrition?query={food_name}'
+            api_key = os.environ.get('NUTRITION_API_KEY', '')
             
-            if image_data:
-                # Extract base64 data and MIME type from data URL
-                mime_type = "image/jpeg"  # default
-                if ',' in image_data:
-                    header, image_base64 = image_data.split(',', 1)
-                    # Parse MIME type from header (e.g., "data:image/png;base64")
-                    if 'image/png' in header:
-                        mime_type = "image/png"
-                    elif 'image/webp' in header:
-                        mime_type = "image/webp"
-                    elif 'image/gif' in header:
-                        mime_type = "image/gif"
+            headers = {}
+            if api_key:
+                headers['X-Api-Key'] = api_key
+            
+            response = requests.get(api_url, headers=headers)
+            
+            if response.status_code == 200:
+                api_data = response.json()
+                
+                if api_data and len(api_data) > 0:
+                    # Aggregate nutrition from all items in the query
+                    total_calories = sum(item.get('calories', 0) for item in api_data)
+                    total_protein = sum(item.get('protein_g', 0) for item in api_data)
+                    total_carbs = sum(item.get('carbohydrates_total_g', 0) for item in api_data)
+                    total_fats = sum(item.get('fat_total_g', 0) for item in api_data)
+                    total_fiber = sum(item.get('fiber_g', 0) for item in api_data)
+                    total_sugar = sum(item.get('sugar_g', 0) for item in api_data)
+                    
+                    # Get food names
+                    food_names = ', '.join(item.get('name', food_name) for item in api_data)
+                    
+                    nutrition_data = {
+                        'food_name': food_names.title(),
+                        'calories': round(total_calories, 1),
+                        'protein': round(total_protein, 1),
+                        'carbs': round(total_carbs, 1),
+                        'fats': round(total_fats, 1),
+                        'fiber': round(total_fiber, 1),
+                        'serving_size': f'{len(api_data)} item(s)',
+                        'health_tips': f'This meal contains {round(total_sugar, 1)}g of sugar. Balance with vegetables for a healthier meal.'
+                    }
                 else:
-                    image_base64 = image_data
-                
-                image_bytes = b64.b64decode(image_base64)
-                
-                response = client.models.generate_content(
-                    model="gemini-2.5-flash",
-                    contents=[
-                        types.Part.from_bytes(
-                            data=image_bytes,
-                            mime_type=mime_type,
-                        ),
-                        prompt,
-                    ],
-                )
+                    # Fallback with estimated values
+                    nutrition_data = {
+                        'food_name': food_name.title(),
+                        'calories': 150,
+                        'protein': 5,
+                        'carbs': 20,
+                        'fats': 5,
+                        'fiber': 2,
+                        'serving_size': '1 serving',
+                        'health_tips': 'Nutrition data not found. Values shown are estimates.'
+                    }
             else:
-                text_prompt = f"""Provide detailed nutrition information for: {food_name}
-                Return ONLY a valid JSON object with this exact format (no markdown, no extra text):
-                {{
-                    "food_name": "{food_name}",
-                    "calories": 0,
-                    "protein": 0,
-                    "carbs": 0,
-                    "fats": 0,
-                    "fiber": 0,
-                    "serving_size": "typical serving size",
-                    "health_tips": "brief health tip about this food"
-                }}
-                Use realistic nutritional values based on a standard serving."""
-                
-                response = client.models.generate_content(
-                    model="gemini-2.5-flash",
-                    contents=text_prompt,
-                )
-            
-            result_text = response.text if response.text else ""
-            
-            # Parse the response
-            try:
-                # Remove markdown code blocks if present
-                if '```json' in result_text:
-                    result_text = result_text.split('```json')[1].split('```')[0]
-                elif '```' in result_text:
-                    result_text = result_text.split('```')[1].split('```')[0]
-                
-                nutrition_data = json.loads(result_text.strip())
-            except json.JSONDecodeError as e:
-                return JsonResponse({
-                    'success': False, 
-                    'error': f'Failed to parse nutrition data: {str(e)}'
-                })
+                # API error - use fallback
+                nutrition_data = {
+                    'food_name': food_name.title(),
+                    'calories': 150,
+                    'protein': 5,
+                    'carbs': 20,
+                    'fats': 5,
+                    'fiber': 2,
+                    'serving_size': '1 serving',
+                    'health_tips': 'Could not fetch nutrition data. Values shown are estimates.'
+                }
             
             # Save meal if requested
             save_meal = request.POST.get('save_meal', 'false') == 'true'

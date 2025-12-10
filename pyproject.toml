@@ -8,4 +8,5 @@ dependencies = [
     "google-genai>=1.54.0",
     "openai>=2.9.0",
     "pillow>=12.0.0",
+    "requests>=2.32.5",
 ]

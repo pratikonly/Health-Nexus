@@ -598,6 +598,7 @@ dependencies = [
     { name = "google-genai" },
     { name = "openai" },
     { name = "pillow" },
+    { name = "requests" },
 ]
 
 [package.metadata]
@@ -606,6 +607,7 @@ requires-dist = [
     { name = "google-genai", specifier = ">=1.54.0" },
     { name = "openai", specifier = ">=2.9.0" },
     { name = "pillow", specifier = ">=12.0.0" },
+    { name = "requests", specifier = ">=2.32.5" },
 ]
 
 [[package]]
